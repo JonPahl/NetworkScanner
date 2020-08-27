@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetworkScanner.Entities;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Zeroconf;
@@ -15,9 +16,23 @@ namespace NetworkScanner.Network
             var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key)).ConfigureAwait(false);
             foreach (var resp in responses)
             {
-                Console.WriteLine(resp.IPAddress);
-                Console.WriteLine(resp.DisplayName);
-                Console.WriteLine("\t"+resp);
+                var name = "";
+                foreach (var prop in resp.Services.FirstOrDefault().Value.Properties)
+                {
+                    if (!prop.TryGetValue("fn", out name))
+                        name = "N/A";
+                }
+
+                var fd = new FoundDevice
+                {
+                    IpAddress = resp.IPAddress,
+                    DeviceId = resp.DisplayName,
+                    DeviceName = name,
+                    FoundUsing = "Bonjour",
+                    FoundAt = DateTime.Now
+                };
+
+                FoundDeviceCollection.Add(fd);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using NetworkScanner.Entities;
 using NetworkScanner.Network;
+using NetworkScanner.Upnp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -11,75 +12,108 @@ namespace NetworkScanner
 {
     public static class Program
     {
+        private static List<string> IpRanges = new List<string>();
+
         public static async Task Main()
         {
-            var IpRanges = new List<string>();
-            IpRanges.AddRange(BuildIpRange("192.168.1.1", "192.168.1.255"));
-           
-            try
-            {
-                foreach (var ip in IpRanges)
-                {
-                    var isUsed = await PingAble.PingHost(ip).ConfigureAwait(false);
+            FoundDeviceCollection.collection.CollectionChanged += OnChange;
 
-                    if (!isUsed)
-                        continue;
+            IpRanges.AddRange(BuildIpRange("192.168.1.1", "192.168.1.254"));
 
-                    try
-                    {
-                        var park = new Network.ParkSquare();
-                        park.Devices.CollectionChanged += OnChange;
+            await BonjourFinder().ConfigureAwait(false);
+            await RssdpFinder().ConfigureAwait(false);
+            await FindReachableHosts().ConfigureAwait(false);
+            await UpnpFinder().ConfigureAwait(false);
+            
+            //var uPnPTest = new UPnPTest();
+        }
 
-                        await park.LoadData(ip).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                }
+        private static async Task UpnpFinder()
+        {
+            var UpnpSearcher = new UpnpSearcher();
+            await UpnpSearcher.BeginSearch().ConfigureAwait(false);
+        }
 
+        private static async Task FindReachableHosts()
+        {
+            var pingHosts = new PingHosts();
+            pingHosts.SetIpAddresses(IpRanges);
 
-                Console.WriteLine(new string('=', 75));
-
-                await BonjourFinder().ConfigureAwait(false);
-
-                Console.WriteLine(new string('=', 75));
-
-                await RssdpFinder().ConfigureAwait(false);
-
-
-                var mig = new UPnP();
-
-            }
-            catch (Exception ex)
-            {
-
-            }
+            await pingHosts.RunPingAsync().ConfigureAwait(false);
         }
 
         private static void OnChange(object sender, NotifyCollectionChangedEventArgs e)
         {
-            foreach(FoundDevice x in e.NewItems)
-            {
-                Console.WriteLine(x.DeviceName);
-                Console.WriteLine(x.DeviceId);
-                Console.WriteLine(x.IpAddress);
-                Console.WriteLine(new string('.', 80));
-            }
+            BuildTable();
 
-            //throw new NotImplementedException();
+            //todo: build out database store.
+
+            /*
+            foreach (FoundDevice x in e.NewItems)
+            {
+                Console.WriteLine($"DEVICENAME: {x.DeviceName}");
+                Console.WriteLine($"DEVICEID: {x.DeviceId}");
+                Console.WriteLine($"IPADDRESS: {x.IpAddress}");
+                Console.WriteLine($"FOUNDAT: {x.FoundAt}");
+                Console.WriteLine(new string('.', 80));
+            }*/
         }
 
         private static async Task BonjourFinder()
         {
-            var bonjourFinder = new BonjourFinder();
-            await bonjourFinder.EnumerateAllServicesFromAllHosts().ConfigureAwait(false);
+            try
+            {
+                var bonjourFinder = new BonjourFinder();
+                await bonjourFinder.EnumerateAllServicesFromAllHosts().ConfigureAwait(false);
+            }
+            catch (System.Net.Http.HttpRequestException)
+            {
+
+            }
         }
 
         private static async Task RssdpFinder()
         {
-            var rsdpFinder = new RssdpFinder();
-            await rsdpFinder.SearchForDevices().ConfigureAwait(false);
+            try
+            {
+                var rsdpFinder = new RssdpFinder();
+                await rsdpFinder.SearchForDevices().ConfigureAwait(false);
+            }
+            catch (System.Net.Http.HttpRequestException)
+            {
+
+            }
+        }
+
+        private static void BuildTable()
+        {
+            #region Update Page.
+            //Console.Clear();
+            Console.SetCursorPosition(0, 0);
+
+            List<Tuple<int, string, string, string, string>> devices = new List<Tuple<int, string, string, string, string>>();
+
+            var deviceArray = FoundDeviceCollection.collection.ToArray();
+            Array.Sort(deviceArray, ExtensionMethods.IpCompareExtension);
+
+            for (int i = 0; i < deviceArray.Length; i++)
+            {
+                var deviceID = deviceArray[i].DeviceId ?? "N/A";
+
+                var ip = deviceArray[i].IpAddress;
+                var name = deviceArray[i].DeviceName ?? "N/A";
+
+                var id = deviceArray[i].DeviceId;
+                var foundUsing = deviceArray[i].FoundUsing;
+
+                var t = Tuple.Create(i, deviceArray[i].IpAddress, name, deviceID, deviceArray[i].FoundUsing);
+                devices.Add(t);
+            }
+
+            Console.WriteLine(devices.ToStringTable(
+                  new[] { "Id", "Ip Address", "Device Name", "Device Id", "Found Using" },
+                  a => a.Item1, a => a.Item2, a => a.Item3, a => a.Item4, a => a.Item5));
+            #endregion
         }
 
         private static List<string> BuildIpRange(string start, string end)
@@ -91,72 +125,7 @@ namespace NetworkScanner
 
             var range = ipRange.GetIPRange(startAddress, endAddress);
 
-            return (range.Any()) ? range.ToList() : new List<string>();
+            return range.Any() ? range.ToList() : new List<string>();
         }
     }
 }
-
-
-/*
-            foreach (var ip in IpRanges)
-            {
-                var isUsed = await PingAble.PingHost(ip).ConfigureAwait(false);
-
-                if (isUsed)
-                {
-                    try
-                    {
-                        var park = new Network.ParkSquare();
-                        park.Devices.CollectionChanged += OnChange;
-
-                        await park.LoadData(ip).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-                }
-            }
-            */
-
-/*
-foreach (var ip in IpRanges)
-{
-    var isUsed = await PingAble.PingHost(ip).ConfigureAwait(false);
-
-    if (isUsed)
-    {
-        var snmp = new SNMPManager(ip, "community");
-        var wmiManager = new WmiManager(ip);
-
-        var results = wmiManager.FindProperty("Win32_OperatingSystem", new List<string> { "CSName" });
-        // Win32_OperatingSystem // CSName
-
-
-        var systemName = snmp.FindValue("1.3.6.1.2.1.1.5.0");
-        var upTime = snmp.FindValue("1.3.6.1.2.1.1.3.0");
-
-        Console.WriteLine(ip);
-        Console.WriteLine($"\t\t{isUsed}");
-        Console.WriteLine($"\t\t{systemName}");
-        Console.WriteLine($"\t\t{upTime}");
-    }
-}
-Console.WriteLine(new string('-', 75));
-*/
-
-/*
-       foreach (var ip in IpRanges)
-       {
-           var isUsed = await PingAble.PingHost(ip).ConfigureAwait(false);
-
-           if (isUsed)
-           {
-               var systemName = PingAble.GetMachineNameFromIPAddress(ip);
-
-               Console.WriteLine(ip);                        
-               Console.WriteLine($"\t\t{isUsed}");
-               Console.WriteLine($"\t\t{systemName}");
-           }
-       }
-   */
