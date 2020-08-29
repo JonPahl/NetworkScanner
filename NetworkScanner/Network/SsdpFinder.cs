@@ -127,7 +127,6 @@ namespace NetworkScanner.Network
     }
 }
 
-
 /*
 foreach (var prop in info.GetType().GetProperties().ToList())
     Console.WriteLine($"\t\t{prop.Name.ToUpper()}:\t{prop.GetValue(info)}");

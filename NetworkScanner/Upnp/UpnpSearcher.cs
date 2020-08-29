@@ -35,10 +35,9 @@ namespace NetworkScanner.Upnp
                     IpAddress = item.ToRootDevice().Location.Host
                 };
 
-                FoundDeviceCollection.collection.Add(fd);
+                FoundDeviceCollection.Add(fd);
             }
         }
-
 
         // Call this method from somewhere in your code to start the search.
         public async Task BeginSearch()
@@ -49,19 +48,17 @@ namespace NetworkScanner.Upnp
 
             _DeviceLocator = new SsdpDeviceLocator
             {
-                NotificationFilter = "upnp:rootdevice"
+                //NotificationFilter = "upnp:rootdevice"
             };
             _DeviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
 
             // Enable listening for notifications (optional)
             _DeviceLocator.StartListeningForNotifications();
 
-            TimeSpan time = new TimeSpan(0, 2, 0);
+            TimeSpan time = new TimeSpan(0, 0, 30);
             // Perform a search so we don't have to wait for devices to broadcast notifications 
             // again to get any results right away (notifications are broadcast periodically).
              _DeviceLocator.SearchAsync(time);
-            
-            Console.ReadLine();
         }
 
         // Process each found device in the event handler
@@ -79,13 +76,13 @@ namespace NetworkScanner.Upnp
                     IpAddress = fullDevice.ToRootDevice().Location.Host
                 };
 
-                FoundDeviceCollection.collection.Add(fd);
+                FoundDeviceCollection.Add(fd);
             }
             catch (System.Net.Http.HttpRequestException)
             {
-
+            } catch(Exception)
+            {
             }
         }
-
     }
 }

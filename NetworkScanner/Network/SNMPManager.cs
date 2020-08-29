@@ -42,7 +42,6 @@ namespace NetworkScanner.Network
             var results = snmp.Walk(SnmpVersion.Ver1, oid); //".1.3.6.1.2.1.1"
             return (results?.Count > 0) ? results : null;
         }
-
     }
 }
 

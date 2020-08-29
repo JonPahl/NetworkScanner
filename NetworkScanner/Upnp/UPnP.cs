@@ -1,16 +1,11 @@
 ﻿using MIG;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 
 namespace NetworkScanner.Network
 {
     public class UPnP
     {
-
         public UPnP()
         {
             string webPort = "8088";
@@ -28,7 +23,7 @@ namespace NetworkScanner.Network
             web.SetOption("Port", webPort);
             web.SetOption("Password", "");
             web.SetOption("EnableFileCaching", "False");
-            
+
             // Add and configure the Web Socket gateway
             var ws = migService.AddGateway("WebSocketGateway");
             ws.SetOption("Port", "8181");
@@ -42,7 +37,7 @@ namespace NetworkScanner.Network
             migService.EnableInterface("Protocols.UPnP");
             migService.EnableInterface("upnp:rootdevice");
 
-            migService.RegisterApi("http://192.168.1.1:49152/GetDeviceInfo", test);
+            migService.RegisterApi("http://192.168.1.1:49152/GetDeviceInfo", Test);
 
             migService.InterfacePropertyChanged += interfacePropertyChangedEventHandler;
             migService.InterfaceModulesChanged += InterfaceModeulesChangedEventHandler;
@@ -54,7 +49,7 @@ namespace NetworkScanner.Network
             }
         }
 
-        private object test(MigClientRequest arg)
+        private object Test(MigClientRequest arg)
         {
             throw new NotImplementedException();
         }
@@ -77,7 +72,7 @@ namespace NetworkScanner.Network
 
         private void interfacePropertyChangedEventHandler(object sender, InterfacePropertyChangedEventArgs args)
         {
-            var results = sender as MIG.Interfaces.Protocols.UPnP;
+            //var results = sender as MIG.Interfaces.Protocols.UPnP;
             /*
             Console.Clear();
             Console.SetCursorPosition(0, 0);
@@ -96,7 +91,6 @@ namespace NetworkScanner.Network
                 Console.WriteLine();               
             }
             */
-           
         }
     }
 }

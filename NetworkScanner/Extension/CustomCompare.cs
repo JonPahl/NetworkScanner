@@ -1,18 +1,20 @@
 ﻿using NetworkScanner.Entities;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace NetworkScanner.Extension
 {
-    public class CustomCompare : IComparer
+    public class EqualityCompare : IEqualityComparer<FoundDevice>
     {
-        public int Compare(object x, object y)
+        public bool Equals(FoundDevice newItem, FoundDevice oldItem)
         {
+            return newItem.DeviceId != oldItem.DeviceId;
+        }
 
-
-            throw new NotImplementedException();
+        public int GetHashCode([DisallowNull] FoundDevice obj)
+        {
+            obj.FoundAt = null;
+            return obj.GetHashCode();
         }
     }
 }

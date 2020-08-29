@@ -1,60 +1,60 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading;
+using System.Collections.Concurrent;
 
 namespace NetworkScanner.Entities
 {
     public static class FoundDeviceCollection
     {
-        private static readonly ReaderWriterLock rwl = new ReaderWriterLock();
-        public static ObservableCollection<FoundDevice> collection = new ObservableCollection<FoundDevice>();
+        public static event EventHandler<FoundDeviceChangedEventArgs> Changed;
+        public static ConcurrentDictionary<int, FoundDevice> collection;
+        static FoundDeviceCollection() => collection = new ConcurrentDictionary<int, FoundDevice>();
 
-        public static void Add(FoundDevice device)
+        /// <summary>
+        /// Adds the specified device.
+        /// </summary>
+        /// <param name="device">The device.</param>
+        public static void Add(FoundDevice newItem)
         {
             try
             {
-                rwl.AcquireWriterLock(3000);
-                try
-                {
-                    if (collection.Count == 0)
-                        collection.Add(device);
-
-                    if(device.Equals(device))
-                    {
-                        collection.Add(device);
-                    }
-
-                    /*
-                    if (device.DeviceId == null && !collection.Any(x => x.IpAddress == device.IpAddress))
-                    {
-                        collection.Add(device);
-                    }
-
-                    if (device.DeviceId != null && !collection.Any(x => x.DeviceId != device.DeviceId))
-                    {
-                        if (!collection.Any(x => x.IpAddress != device.IpAddress))
-                        {
-                            if (!collection.Any(x => x.DeviceName != device.DeviceName))
-                            {
-                                collection.Add(device);
-                            }
-                        }
-                    }
-                    */
-
-                }
-                finally
-                {
-                    // Ensure that the lock is released.
-                    rwl.ReleaseWriterLock();
-                }
+                if (collection.TryAdd(newItem.GetHashCode(), newItem))
+                    Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
             }
-            catch (ApplicationException)
+            catch (ArgumentException)
             {
-                // The writer lock request timed out.
-                //Interlocked.Increment(ref writerTimeouts);
+                if(collection.TryUpdate(newItem.GetHashCode(), newItem, newItem))
+                {
+                    Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Replaced, newItem, null));
+                }
+
+                //suppress duplicate key exception
             }
         }
+    }
+
+    public class FoundDeviceChangedEventArgs : EventArgs
+    {
+        private FoundDevice _changedItem;
+        private ChangeType _changeType;
+        private FoundDevice _replacedWith;
+
+        public FoundDevice ChangedItem { get { return _changedItem; } }
+        public ChangeType ChangeType { get { return _changeType; } }
+        public FoundDevice ReplacedWith { get { return _replacedWith; } }
+
+        public FoundDeviceChangedEventArgs(ChangeType change, FoundDevice item, FoundDevice replacement)
+        {
+            _changeType = change;
+            _changedItem = item;
+            _replacedWith = replacement;
+        }
+    }
+
+    public enum ChangeType
+    {
+        Added,
+        Removed,
+        Replaced,
+        Cleared
     }
 }

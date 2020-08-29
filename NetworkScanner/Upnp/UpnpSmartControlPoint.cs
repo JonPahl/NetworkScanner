@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections;
-
 using OpenSource.UPnP;
 using OpenSource.Utilities;
-
 using System.Net;
 using System.Runtime.InteropServices;
 using EventLogEntryType = OpenSource.Utilities.EventLogEntryType;
-using NetworkScanner.Network;
-using Waher.Networking.Sniffers;
 using RestSharp;
 using NetworkScanner.Entities;
 
@@ -351,46 +347,11 @@ namespace NetworkScanner.Upnp
                                 fd.DeviceName = queryResult.friendlyName;
 
                             FoundDeviceCollection.Add(fd);
-
-
-                            //#region move me
-
-                            //try
-                            //{
-                            //    var client = new RestClient(info.BaseURL);
-                            //    var request = new RestRequest(Method.GET);
-                            //    var queryResult = client.Execute<UpnpDescription.rootDevice>(request).Data;
-
-                            //    if (queryResult != null)
-                            //        fd.DeviceName = queryResult.friendlyName;
-
-                            //    FoundDeviceCollection.Add(fd);
-                            //}
-                            //catch (Exception ex)
-                            //{
-
-                            //}
-                            //#endregion
-
-
-                            //var x = new SsdpFinder();
-                            ////x.Search(info.BaseURL.Host, info.UDN).GetAwaiter().GetResult();
-                            //x.Search(info.LocalEP.Address.ToString(), info.UDN).GetAwaiter().GetResult();
-                            //x.Search(info.LocalEP.Address.ToString(), item.Key.ToString()).GetAwaiter().GetResult();
-
-                            //Console.WriteLine(item.Key.ToString());
-                            //Console.WriteLine(info.UDN);
-                            //Console.WriteLine(info.NotifyTime);
-                            //Console.WriteLine($"\t{info.BaseURL}");
-                            //Console.WriteLine($"\t{info.UDN}");
-                            //Console.WriteLine($"\t{info.LocalEP}");
-                            //Console.WriteLine();
                         }
                     }
                 }
             }
         }
-
 
         private UpnpDescription.rootDevice? LoadDeviceDetails(Uri uri)
         {
@@ -398,10 +359,9 @@ namespace NetworkScanner.Upnp
             {
                 var client = new RestClient(uri);
                 var request = new RestRequest(Method.GET);
-                var queryResult = client.Execute<UpnpDescription.rootDevice>(request).Data;
-                return queryResult;
+                return client.Execute<UpnpDescription.rootDevice>(request).Data;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

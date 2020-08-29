@@ -6,11 +6,6 @@ namespace NetworkScanner.Upnp
 {
     public class UPnPTest
     {
-        public UPnPTest()
-        {
-            StartHere();
-        }
-
         public void StartHere()
         {
             var controlPoint = new UpnpSmartControlPoint();
@@ -61,7 +56,6 @@ namespace NetworkScanner.Upnp
             controlPoint = null;
         }
 
-        
         [Obsolete]
         private static void AddWeMoSwitch()
         {

@@ -1,16 +1,15 @@
-﻿using System;
+﻿using NetworkScanner.Entities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NetworkScanner.Network
 {
     public class PingHosts
     {
-        private SsdpFinder ssdp = new SsdpFinder();
+        //private SsdpFinder ssdp = new SsdpFinder();
         private List<string> ipAddresses = new List<string>();
 
         private int timeout = 100;
@@ -30,7 +29,7 @@ namespace NetworkScanner.Network
             {
                 Ping p = new Ping();
                 var task = PingAndUpdateAsync(p, ip);
-                tasks.Add(task);                
+                tasks.Add(task);
             }
 
             await Task.WhenAll(tasks)
@@ -44,10 +43,7 @@ namespace NetworkScanner.Network
 
         internal void SetIpAddresses(List<string> ipRanges)
         {
-            if (ipAddresses == null)
-                ipAddresses = new List<string>();
-
-            ipAddresses.AddRange(ipRanges);
+            (ipAddresses ??= new List<string>()).AddRange(ipRanges);
         }
 
         private async Task PingAndUpdateAsync(Ping ping, string ip)
@@ -56,7 +52,18 @@ namespace NetworkScanner.Network
 
             if (reply.Status == IPStatus.Success)
             {
-                await ssdp.LoadData(ip).ConfigureAwait(false);
+                //await ssdp.LoadData(ip).ConfigureAwait(false);
+
+                var fd = new FoundDevice
+                {
+                    IpAddress = ip,
+                    DeviceName = "N/A",
+                    DeviceId = $"{ip}_NA",
+                    FoundAt = DateTime.Now,
+                    FoundUsing = "Ping"
+                };
+
+                FoundDeviceCollection.Add(fd);
 
                 lock (lockObj)
                 {
