@@ -17,6 +17,7 @@ namespace NetworkScanner.Network
         public RssdpFinder()
         {
             _DeviceLocator = new SsdpDeviceLocator();
+            _DeviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
             //_DeviceLocator.NotificationFilter = "upnp:rootdevice";
         }
 
@@ -24,8 +25,7 @@ namespace NetworkScanner.Network
         /// Starts the listening.
         /// </summary>
         public void StartListening()
-        {
-            _DeviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
+        {            
             _DeviceLocator.StartListeningForNotifications();
             _DeviceLocator.SearchAsync();
         }
@@ -46,7 +46,7 @@ namespace NetworkScanner.Network
             var foundDevice = e.DiscoveredDevice;
             try
             {
-                var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
+               var fullDevice = await foundDevice.GetDeviceInfo().ConfigureAwait(false);
 
                 var localDate = TimeZoneInfo.ConvertTime(e.DiscoveredDevice.AsAt.DateTime, TimeZoneInfo.Local);
 

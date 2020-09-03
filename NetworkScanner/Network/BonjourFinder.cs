@@ -34,9 +34,15 @@ namespace NetworkScanner.Network
 
         private void OnAnnouncement(ServiceAnnouncement sa)
         {
+            if(sa.AdapterInformation.Address == "192.168.1.132")
+            {
+                var x = 0;
+            }
+
             var DeviceName = FindName(sa);
             var IpAddress = sa.Host.Id ?? "N/A";
-            var DeviceId = sa.Host.DisplayName ?? "N/A";
+            var DeviceId = FindDeviceId(sa);
+            //var DeviceId = sa.Host.DisplayName ?? "N/A";
 
             if (DeviceName != "N/A")
             {
@@ -60,14 +66,34 @@ namespace NetworkScanner.Network
             {
                 foreach (var prop in sa.Host.Services.FirstOrDefault().Value.Properties)
                 {
-                    if (prop != null && !prop.TryGetValue("fn", out name))
+                    //if (prop != null && !prop.TryGetValue("fn", out name))
+                    if (prop != null && prop.ContainsKey("id") && prop.ContainsKey("cd") && !prop.TryGetValue("fn", out name))
                     {
                         name = sa.Host.DisplayName;
-                        //name = "N/A";
                     }
                 }
             }
             return name;
+        }
+
+        private string FindDeviceId(ServiceAnnouncement sa)
+        {
+            var deviceId = "N/A";
+            var cd = "";
+            if (sa.Host.Services?.Count > 0)
+            {
+                foreach (var prop in sa.Host.Services.FirstOrDefault().Value.Properties)
+                {
+                    if (prop != null && prop.TryGetValue("id", out deviceId) && prop.TryGetValue("cd", out cd))
+                    {
+                        //deviceId = sa.Host.DisplayName;
+                    } else
+                    {
+                        deviceId = "N/A";
+                    }
+                }
+            }
+            return deviceId;
         }
 
         public async Task EnumerateAllServicesFromAllHosts()
@@ -80,7 +106,7 @@ namespace NetworkScanner.Network
             //var type = "_ipp._tcp";
             //var type = "hostname.local";
             //var results = await ZeroconfResolver.ResolveAsync(type).ConfigureAwait(false);
-
+            
             var domains = await ZeroconfResolver.BrowseDomainsAsync().ConfigureAwait(false);
             var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key)).ConfigureAwait(false);
             foreach (var resp in responses)

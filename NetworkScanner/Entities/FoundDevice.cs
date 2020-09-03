@@ -21,8 +21,8 @@ namespace NetworkScanner.Entities
 
         public override int GetHashCode()
         {
-            var test = $"{IpAddress}_{DeviceName}_{DeviceId}";
-            return test.GetHashCode();
+            var custom = $"{IpAddress}_{DeviceName}_{DeviceId}";
+            return custom.GetHashCode();
             //return base.GetHashCode();
         }
 

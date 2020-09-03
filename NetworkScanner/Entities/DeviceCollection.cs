@@ -6,11 +6,8 @@
 //using System.Diagnostics.CodeAnalysis;
 //using System.Linq;
 
-//namespace NetworkScanner.Entities
-//{
-//    public class DeviceCollection<FoundDevice> : IProducerConsumerCollection<FoundDevice>
-//    {
-
+//namespace NetworkScanner.Entities {
+//    public class DeviceCollection<FoundDevice> : IProducerConsumerCollection<FoundDevice> {
 //        // Used for enforcing thread-safety
 //        private object m_lockObject = new object();
 
@@ -45,9 +42,6 @@
 //                //{
 //                //    var z = x as FoundDevice;
 //                //    if (z.DeviceId == y.DeviceId)
-//                //    {
-
-//                //    }
 //            }
 
 //            var r = m_sequentialStack.Contains<FoundDevice>(item, comparer);  //.Contains<FoundDevice>(y, comparer);
@@ -245,11 +239,8 @@
 
 //            EventHandler<FoundDeviceChangedEventArgs> temp = Changed;
 //            if (temp != null)
-//            {
 //                temp(this, new FoundDeviceChangedEventArgs(ChangeType.Cleared, null, null));
-//            }
 //        }
-
 //        */
 ////}
 
@@ -269,17 +260,8 @@
 //        _changeType = change;
 //        _changedItem = item;
 //        _replacedWith = replacement;
-//    }
-//}
-
-//public enum ChangeType
-//{
-//    Added,
-//    Removed,
-//    Replaced,
-//    Cleared
-//}
-
+//    }}
+//public enum ChangeType{Added,Removed,Replaced,Cleared}
 //}
 
 //            /*
@@ -375,30 +357,17 @@
 ////        }
 ////    }
 
-////    public class FoundDeviceChangedEventArgs : EventArgs
-////    {
+////    public class FoundDeviceChangedEventArgs : EventArgs{
 ////        private FoundDevice _changedItem;
 ////        private ChangeType _changeType;
 ////        private FoundDevice _replacedWith;
-
 ////        public FoundDevice ChangedItem { get { return _changedItem; } }
 ////        public ChangeType ChangeType { get { return _changeType; } }
 ////        public FoundDevice ReplacedWith { get { return _replacedWith; } }
-
 ////        public FoundDeviceChangedEventArgs(ChangeType change, FoundDevice item, FoundDevice replacement)
 ////        {
 ////            _changeType = change;
 ////            _changedItem = item;
 ////            _replacedWith = replacement;
-////        }
-////    }
-
-////    public enum ChangeType
-////    {
-////        Added,
-////        Removed,
-////        Replaced,
-////        Cleared
-////    }
-
-////}
+////        }}
+////    public enum ChangeType{Added,Removed,Replaced,Cleared}}

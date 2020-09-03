@@ -31,7 +31,7 @@ namespace NetworkScanner.Network
                 {
                     foreach (PropertyData prop in mo.Properties)
                     {
-                        Console.WriteLine("{0}: {1}", prop.Name, prop.Value);
+                        //Console.WriteLine("{0}: {1}", prop.Name, prop.Value);
                         results[prop.Name] = prop.Value.ToString();
                     }
                 }
