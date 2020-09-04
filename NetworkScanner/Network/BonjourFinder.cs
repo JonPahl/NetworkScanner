@@ -34,11 +34,6 @@ namespace NetworkScanner.Network
 
         private void OnAnnouncement(ServiceAnnouncement sa)
         {
-            if(sa.AdapterInformation.Address == "192.168.1.132")
-            {
-                var x = 0;
-            }
-
             var DeviceName = FindName(sa);
             var IpAddress = sa.Host.Id ?? "N/A";
             var DeviceId = FindDeviceId(sa);

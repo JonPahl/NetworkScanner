@@ -48,15 +48,14 @@ namespace NetworkScanner
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-
             //var mDns = new MdnsLookup();
 
-            FindReachableHosts();
-            /*
+            //FindReachableHosts();
+            
             #region Start Listening
             //bonjourFinder.StartStopListener();
 
-            rsdpFinder.StartListening();
+            //rsdpFinder.StartListening();
             ssdp.StartListening();
 
             await UpnpSearcher.BeginSearch().ConfigureAwait(false);
@@ -64,7 +63,7 @@ namespace NetworkScanner
 
             IpPingTimer.Enabled = true;
             IpPingTimer.Start();
-*/
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 Thread.Sleep(250);

@@ -22,12 +22,12 @@ namespace NetworkScanner.Network
         private TimeSpan ts;
 
         private Zeroconf Zeroconf;
-        private SsdpFinder SSDP;  //ssdp.StartListening();
+        //private SsdpFinder SSDP;  //ssdp.StartListening();
 
         public PingHosts()
         {
             Zeroconf = new Zeroconf();
-            SSDP = new SsdpFinder();
+            //SSDP = new SsdpFinder();
         }
 
         public void RunPing()
@@ -51,12 +51,11 @@ namespace NetworkScanner.Network
         private async Task PingAndUpdateAsync(Ping ping, string ip)
         {
             var reply = await ping.SendPingAsync(ip, timeout).ConfigureAwait(false);
-            
+
             if (reply.Status == IPStatus.Success)
             {
                 /*
                 var ssdpResult = await SSDP.SearchForDevice(ip, "upnp:rootdevice");
-
                 while(SSDP.IsSearching())
                     Thread.Sleep(500);
                 */
@@ -101,7 +100,8 @@ namespace NetworkScanner.Network
 
             if (systemName == "N/A")
             {
-                systemName = DisplayName(ip);
+                var service = "_esp_temp._tcp.local"; //todo: pass this in.
+                systemName = DisplayName(ip, service);
             }
 
             if (systemName == "N/A")
@@ -123,8 +123,7 @@ namespace NetworkScanner.Network
 
             var wmiManager = new WmiManager(ip);
             var compSysProd = wmiManager.FindProperty("Win32_ComputerSystemProduct", new List<string> { "UUID" });
-            DeviceId = (compSysProd != null) ? compSysProd.FirstOrDefault().Value : "N/A";
-
+            DeviceId = (compSysProd != null) ? compSysProd.FirstOrDefault().Value : $"{ip}_NA";
 
             /*
             try
@@ -143,7 +142,8 @@ namespace NetworkScanner.Network
 
             if (DeviceId == $"{ip}_NA")
             {
-                DeviceId = DisplayId(ip);
+                var service = "_esp_temp._tcp.local"; //todo: pass this in.
+                DeviceId = DisplayId(ip, service);
             }
             /*if (systemName == "N/A"){foreach (var community in Utils.LoadCommunities()){
                     var snmp = new SNMPManager(ip, community);systemName = snmp.FindValue("1.3.6.1.2.1.1.5.0");
@@ -152,18 +152,39 @@ namespace NetworkScanner.Network
             return DeviceId;
         }
 
-        private string DisplayId(string ipAddress)
+        private string DisplayId(string ipAddress, string service)
         {
-            var found = Zeroconf.Search("_esp_Hmd._tcp.local.", ipAddress).GetAwaiter().GetResult();
-            return (found != null) ? found.Id : $"{ipAddress}_NA";
+            try
+            {
+                //var service = "_esp_temp._tcp.local"; //todo: pass this in.
+                var dns = new MdnsLookup();
+
+                var records = dns.ServiceInstanceAsync(service).GetAwaiter().GetResult();
+                var result = records[ipAddress];
+
+                return result ?? $"{ipAddress}_N/A";
+            }
+            catch (Exception)
+            {
+                return $"{ipAddress}_N/A";
+            }
         }
 
-        private string DisplayName(string ipAddress)
+        private string DisplayName(string ipAddress, string service)
         {
-            var found = Zeroconf.Search("_esp_Hmd._tcp.local.", ipAddress).GetAwaiter().GetResult();
-            return (found != null) ? found.DisplayName : "N/A";
+            try
+            {
+                var dns = new MdnsLookup();
+
+                var records = dns.ServiceInstanceAsync(service).GetAwaiter().GetResult();
+                var result = records[ipAddress];
+
+                return result ?? "N/A";
+            }
+            catch (Exception ex)
+            {
+                return "N/A";
+            }
         }
-
-
     }
 }

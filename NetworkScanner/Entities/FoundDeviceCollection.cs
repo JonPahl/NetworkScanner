@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 
 namespace NetworkScanner.Entities
 {
@@ -33,29 +32,27 @@ namespace NetworkScanner.Entities
 
                         if (NewItemHashCode == ExistingItemHashCode)
                         {
-                            //same, could update to track last seen.
+                            //same, update to track last seen.
                             if (collection.TryUpdate(newItem.GetHashCode(), newItem, existingItem))
                                 Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Replaced, newItem, null));
                         }
                         else
                         {
-                            if (newItem.DeviceId != "" && newItem.DeviceId != "N/A")
+                            if (newItem.DeviceId != "" && !newItem.DeviceId.Contains("N/A"))
                             {
-                                var x1 = 0;
-                                if (collection.TryAdd(newItem.GetHashCode(), newItem))
-                                    Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
-                                
-                            }
-                            else
-                            {
-                                if ((newItem.DeviceId != "" && newItem.DeviceId != "N/A"))
+                                if (collection.TryRemove(existingItem.GetHashCode(), out FoundDevice removed))
                                 {
-                                    var x2 = 0;
-                                    FoundDevice removed = null;
-                                    if (collection.TryRemove(existingItem.GetHashCode(), out removed))
+                                    if (collection.TryAdd(newItem.GetHashCode(), newItem))
+                                        Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
+                                }
+                                else
+                                {
+                                    if (!collection.ContainsKey(newItem.GetHashCode()))
                                     {
                                         if (collection.TryAdd(newItem.GetHashCode(), newItem))
+                                        {
                                             Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
+                                        }
                                     }
                                 }
                             }
@@ -63,7 +60,6 @@ namespace NetworkScanner.Entities
                     }
                     else
                     {
-                        var x1 = 0;
                         if (collection.TryAdd(newItem.GetHashCode(), newItem))
                             Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
                     }
