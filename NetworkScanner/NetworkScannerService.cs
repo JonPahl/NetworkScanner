@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NetworkScanner.Database;
 using NetworkScanner.Entities;
 using NetworkScanner.Network;
 using NetworkScanner.Upnp;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Waher.Networking.UPnP;
 
 namespace NetworkScanner
 {
@@ -18,6 +20,7 @@ namespace NetworkScanner
         private List<string> IpRanges = new List<string>();
 
         //private readonly BonjourFinder bonjourFinder;
+
         private readonly UpnpSearcher UpnpSearcher;
         private readonly RssdpFinder rsdpFinder;
         private readonly SsdpFinder ssdp;
@@ -35,6 +38,7 @@ namespace NetworkScanner
             #region Setup
 
             //bonjourFinder = new BonjourFinder();
+
             UpnpSearcher = new UpnpSearcher();
             rsdpFinder = new RssdpFinder();
             ssdp = new SsdpFinder();
@@ -59,7 +63,7 @@ namespace NetworkScanner
             ssdp.StartListening();
 
             await UpnpSearcher.BeginSearch().ConfigureAwait(false);
-            #endregion
+            #endregion Start Listening
 
             IpPingTimer.Enabled = true;
             IpPingTimer.Start();
@@ -101,6 +105,20 @@ namespace NetworkScanner
         private void CollectionChanged(object sender, FoundDeviceChangedEventArgs e)
         {
             BuildTable();
+
+            //var db = new ElasticSearchContext();
+            //var x = db.Insert<FoundDevice>(e.ChangedItem);
+
+            var db = new NetworkContext();
+
+            if (db.KeyExists<FoundDevice>(e.ChangedItem))
+            {
+                //run update.
+            } else
+            {
+                var results = db.Insert<FoundDevice>(e.ChangedItem);
+                Console.WriteLine(results);
+            }
 
             /*
             var m = new MacVenderFinder();

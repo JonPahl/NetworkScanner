@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +11,7 @@ namespace NetworkScanner.Network
     {
         private ServiceDiscovery sd;
         private MulticastService mdns;
-
+        
         public MdnsLookup()
         {
             mdns = new MulticastService();
@@ -62,16 +61,14 @@ namespace NetworkScanner.Network
             foreach (var msg in answers)
             {
                 Console.WriteLine(msg.CanonicalName);
-                Console.WriteLine(msg.CreationTime);                
-            }
-            ////throw new NotImplementedException();
+                Console.WriteLine(msg.CreationTime);
+            }            
         }
 
         private void Sd_ServiceDiscovered(object sender, DomainName e)
         {
             throw new NotImplementedException();
         }
-
 
     }
 }

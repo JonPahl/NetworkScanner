@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Management;
 using System.Runtime.InteropServices;
 
 namespace NetworkScanner.Network
 {
     public class WmiManager
-    {        
-        ManagementScope scope;
+    {
+        private readonly ManagementScope scope;
 
         public WmiManager(string ipAddress)
         {
@@ -36,13 +35,12 @@ namespace NetworkScanner.Network
                     }
                 }
                 return results;
-            } catch(COMException ex)
+            }
+            catch (COMException)
             {
-
             }
 
             return null;
         }
-
     }
 }

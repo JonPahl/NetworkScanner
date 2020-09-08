@@ -1,10 +1,17 @@
-﻿using System;
+﻿using Nest;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NetworkScanner.Entities
 {
+    [ElasticsearchType(IdProperty = nameof(DeviceId))]
     public class FoundDevice //: IComparable<FoundDevice>
     {
         public string IpAddress { get; set; }
+
+        [Key]
+        public int Id { get; set; }
+
         public string DeviceId { get; set; }
         public string DeviceName { get; set; }
         public string FoundUsing { get; set; }

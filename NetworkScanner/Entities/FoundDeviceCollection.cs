@@ -19,6 +19,7 @@ namespace NetworkScanner.Entities
         /// <param name="device">The device.</param>
         public static void Add(FoundDevice newItem)
         {
+            newItem.Id = newItem.GetHashCode();
             try
             {
                 if (collection.Count > 0) // && collection.Values.Count(x => x.IpAddress == newItem.IpAddress) > 0

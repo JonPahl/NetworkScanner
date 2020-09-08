@@ -4,7 +4,6 @@ using Rssdp.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace NetworkScanner.Network
@@ -18,9 +17,6 @@ namespace NetworkScanner.Network
             deviceLocator = new SsdpDeviceLocator();
             deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
         }
-
-
-
 
         /// <summary>
         /// Searches the specified ip.
@@ -174,10 +170,12 @@ namespace NetworkScanner.Network
             }
             catch (Exception)
             {
-                BuildObject(ip);
+                var fd = BuildDeviceObject.BuildDevice(ip, "ssdp ping");
+                FoundDeviceCollection.Add(fd);
             }
         }
 
+        /*
         //todo: move to its own location.
         public void BuildObject(string ip)
         {
@@ -222,28 +220,14 @@ namespace NetworkScanner.Network
             };
 
             FoundDeviceCollection.Add(fd);
-        }
+        }*/
     }
 }
 
-/*
-foreach (var prop in info.GetType().GetProperties().ToList())
-    Console.WriteLine($"\t\t{prop.Name.ToUpper()}:\t{prop.GetValue(info)}");
-*/
-
-//Console.WriteLine(info.FriendlyName);
-//Console.WriteLine(info.DeviceType);
-//Console.WriteLine(info.DeviceVersion);
-//Console.WriteLine(info.Manufacturer);
-//Console.WriteLine(info.ModelNumber);
-//Console.WriteLine(info.SerialNumber);
-//Console.WriteLine();
-//Console.WriteLine(new string('*', 75));
-//Console.WriteLine();
-//Console.WriteLine(device.ToString());
-//foreach (var service in device.Services)
-//{
-//    Console.WriteLine($"\t{service.ServiceId} ({service.ServiceType})");
-//    foreach (var action in service.Actions)
-//        Console.WriteLine($"\t\t{action.Name}");
-//}
+//foreach (var prop in info.GetType().GetProperties().ToList())Console.WriteLine($"\t\t{prop.Name.ToUpper()}:\t{prop.GetValue(info)}");
+//Console.WriteLine(info.FriendlyName);Console.WriteLine(info.DeviceType);
+//Console.WriteLine(info.DeviceVersion);Console.WriteLine(info.Manufacturer);
+//Console.WriteLine(info.ModelNumber);Console.WriteLine(info.SerialNumber);
+//Console.WriteLine();Console.WriteLine(new string('*', 75));Console.WriteLine();Console.WriteLine(device.ToString());
+//foreach (var service in device.Services){Console.WriteLine($"\t{service.ServiceId} ({service.ServiceType})");
+//    foreach (var action in service.Actions) Console.WriteLine($"\t\t{action.Name}");}

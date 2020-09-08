@@ -1,13 +1,11 @@
-﻿using MIG;
+﻿/*
+using MIG;
 using System;
 using System.Threading;
 
-namespace NetworkScanner.Network
-{
-    public class UPnP
-    {
-        public UPnP()
-        {
+namespace NetworkScanner.Upnp {
+    public class UPnP {
+        public UPnP() {
             string webPort = "8088";
 
             //Console.WriteLine("MigService test APP");
@@ -76,8 +74,7 @@ namespace NetworkScanner.Network
             /*
             Console.Clear();
             Console.SetCursorPosition(0, 0);
-            for (int i = 0; i < results.UpnpControlPoint.DeviceTable.Count; i++)
-            {
+            for (int i = 0; i < results.UpnpControlPoint.DeviceTable.Count; i++) {
                 var device = results.UpnpControlPoint.DeviceTable[i] as OpenSource.UPnP.UPnPDevice;
 
                 Console.WriteLine(device.FriendlyName);
@@ -85,12 +82,6 @@ namespace NetworkScanner.Network
                 Console.WriteLine(device.BaseURL.DnsSafeHost);
 
                 foreach(var service in device.Services.ToList())
-                {
                     Console.WriteLine($"\t{service.EventURL}");
-                }
                 Console.WriteLine();               
-            }
-            */
-        }
-    }
-}
+            } }}} */
