@@ -4,6 +4,7 @@ using NetworkScanner.Application.Compare;
 using NetworkScanner.Domain.Display;
 using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure;
+using NetworkScanner.Infrastructure.Database;
 using NetworkScanner.Infrastructure.Display;
 using NetworkScanner.Infrastructure.HostName;
 using NetworkScanner.Service.Worker;
@@ -245,6 +246,23 @@ namespace NetworkScanner.Service
                     cnt++;
                 }
 
+                #region Store to Db
+                var ctx = new NetworkContext();
+
+                foreach (var device in devices)
+                {
+                    var found = ctx.KeyExists(device);
+                    if (found)
+                    {
+                        ctx.Update(device);
+                    }
+                    else
+                    {
+                        ctx.Insert(device);
+                    }
+                }
+                #endregion
+
                 var tempWrite = DisplayTable(devices.Select(x => x).ToList());
                 displayResult.Display(tempWrite);
             }
@@ -256,10 +274,9 @@ namespace NetworkScanner.Service
 
         private string DisplayTable(List<FoundDevice> devices)
         {
-            var table = devices.ToStringTable(
+            return devices.ToStringTable(
                 new[] { "ID", "KEY", "IP ADDRESS", "DEVICE NAME", "DEVICE ID", "FOUND USING", "TIMESTAMP" },
                 a => a.Id, a => a.Key, a => a.IpAddress, a => a.DeviceName, a => a.DeviceId, a => a.FoundUsing, a => a.FoundAt);
-            return table;
         }
 
         #endregion Display Results

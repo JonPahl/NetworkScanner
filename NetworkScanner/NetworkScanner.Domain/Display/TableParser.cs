@@ -50,7 +50,7 @@ namespace NetworkScanner.Domain.Display
 
                     if (value == null)
                     {
-                        arrValues[rowIndex, colIndex] = "N/A"; //Utils.Common;
+                        arrValues[rowIndex, colIndex] = "N/A";
                     }
                     else
                     {

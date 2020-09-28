@@ -3,7 +3,7 @@ using System.Text;
 
 namespace NetworkScanner.Domain.Entities
 {
-    public class FoundDevice : Details
+    public class FoundDevice //: Details
     {
         //Details
         public string Id { get; set; }
@@ -13,6 +13,7 @@ namespace NetworkScanner.Domain.Entities
         public DateTime? FoundAt { get; set; }
         public string FoundUsing { get; set; }
         public object Key { get; set; }
+
         public FoundDevice()
         {
             DeviceId = string.Empty;
@@ -20,6 +21,7 @@ namespace NetworkScanner.Domain.Entities
             FoundUsing = string.Empty;
             FoundAt = DateTime.Now;
         }
+
         public override int GetHashCode()
         {
             try
