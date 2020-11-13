@@ -131,8 +131,7 @@ namespace NetworkScanner.Domain.LightBulb
                 var results = sendClient.Receive(ref remoteEP);
 
                 string json = Encoding.Default.GetString(results);
-                var result = JsonConvert.DeserializeObject<WizMsg>(json);
-                return result;
+                return JsonConvert.DeserializeObject<WizMsg>(json);
             }
             catch (Exception)
             {

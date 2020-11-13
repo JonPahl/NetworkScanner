@@ -4,12 +4,14 @@ using NetworkScanner.Application.Compare;
 using NetworkScanner.Domain.Display;
 using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure;
-using NetworkScanner.Infrastructure.Database;
 using NetworkScanner.Infrastructure.Display;
+using NetworkScanner.Infrastructure.Factory;
 using NetworkScanner.Infrastructure.HostName;
 using NetworkScanner.Service.Worker;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -36,16 +38,24 @@ namespace NetworkScanner.Service
         private readonly Stopwatch stopWatch;
         private PingWorkflow Workflow = null;
         private static System.Timers.Timer _timer;
-
+        private readonly IBackgroundTaskQueue taskQueue;
         private readonly IDisplayResult displayResult;
         private readonly SsdpWorker ssdpWorker;
         private readonly MdnsWorker mdnsWorker;
         private readonly object _object;
+        private readonly ILiteDbContext liteDbContext;
+
+        private readonly ILogger Logger;
+        private List<Result> results = new List<Result>();
 
         #region Setup
 
-        public NetworkScanner()
+        public NetworkScanner(ILiteDbContext dbContext)
         {
+            Logger = Log.ForContext<NetworkScanner>();
+            taskQueue = new BackgroundTaskQueue();
+
+            liteDbContext = dbContext;
             //var pipeName = "TestOne";
 
             QueueLength = 0;
@@ -90,8 +100,30 @@ namespace NetworkScanner.Service
             Console.WriteLine();
             Console.WriteLine("Start Listeners");
 
+            /*
             await ssdpWorker.RunAsync().ConfigureAwait(false);
             mdnsWorker.Run();
+            */
+
+            #region build worker.
+            try
+            {
+                var WizBulbWorker = new WizBulbWorker(taskQueue, Logger);
+                WizBulbWorker.DoWork += WizBulbWorker_DoWork;
+                WizBulbWorker.ProgressChanged += WizBulbWorker_ProgressChanged;
+                WizBulbWorker.RunWorkerCompleted += WizBulbWorker_RunWorkerCompleted;
+
+                CancellationTokenSource cts = new CancellationTokenSource();
+                CancellationToken token = cts.Token;
+                cts.CancelAfter(new TimeSpan(0,0,30));
+                token.ThrowIfCancellationRequested();
+                await WizBulbWorker.ExecuteAsync(token).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            #endregion
 
             _timer.Enabled = true;
             _timer.Start();
@@ -109,10 +141,7 @@ namespace NetworkScanner.Service
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         #endregion
 
@@ -139,10 +168,7 @@ namespace NetworkScanner.Service
             _timer.Start();
         }
 
-        private async Task RunNetworkScanner()
-        {
-            await ScanIpAddresses().ConfigureAwait(false);
-        }
+        private async Task RunNetworkScanner() => await ScanIpAddresses().ConfigureAwait(false);
         private async Task ScanIpAddresses()
         {
             nFound = 0;
@@ -160,6 +186,35 @@ namespace NetworkScanner.Service
             }).ConfigureAwait(false);
 
             ProcessesFoundAddresses();
+            WizBulbQueueItems();
+        }
+
+        private void WizBulbWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void WizBulbWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        private void WizBulbWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void WizBulbQueueItems()
+        {
+            var WizBulbFactory = new WizBulbFactory();
+
+            foreach (var item in FoundDeviceCollection.collection.Where(x => x.Value.DeviceName != Utils.Common).Select(x => x.Value).Reverse())
+            {
+                taskQueue.QueueBackgroundWorkItem(async _ =>
+                {
+                    var result = await WizBulbFactory.FindValue(item.IpAddress, "").ConfigureAwait(false);
+                    results.Add(result);
+                });
+            }
         }
 
         public void FindDeviceId(object obj)
@@ -180,7 +235,6 @@ namespace NetworkScanner.Service
                 Console.WriteLine(ex.Message);
             }
         }
-
         private void FoundDeviceCollection_Changed(object sender, FoundDeviceChangedEventArgs e)
         {
             lock (_object)
@@ -247,19 +301,23 @@ namespace NetworkScanner.Service
                 }
 
                 #region Store to Db
-                var ctx = new NetworkContext();
+                //var ctx = new NetworkContext();
 
                 foreach (var device in devices)
                 {
-                    var found = ctx.KeyExists(device);
+                    var result = liteDbContext.Merge(device);
+                    Console.WriteLine(result);
+                    /*
+                    var found = liteDbContext.KeyExists(device);
                     if (found)
                     {
-                        ctx.Update(device);
+                        liteDbContext.Update(device);
                     }
                     else
                     {
-                        ctx.Insert(device);
+                        liteDbContext.Insert(device);
                     }
+                    */
                 }
                 #endregion
 

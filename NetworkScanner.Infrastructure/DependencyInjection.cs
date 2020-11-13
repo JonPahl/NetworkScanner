@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using NetworkScanner.Application.Common.Interface;
 using NetworkScanner.Domain;
+using NetworkScanner.Infrastructure.Database;
 using NetworkScanner.Infrastructure.Factory;
 using System;
 using System.Collections.Generic;
@@ -12,8 +14,11 @@ namespace NetworkScanner.Infrastructure
     {
         public delegate ARpcFactory RpcFactoryResolver(string key);
 
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+        public static IConfigurationRoot Configuration;
+
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfigurationRoot configuration)
         {
+            Configuration = configuration;
             services.AddScoped<DeviceNameFactory>();
             //services.AddScoped<MdnsFactory>();
             services.AddScoped<SnmpFactory>();
@@ -23,6 +28,9 @@ namespace NetworkScanner.Infrastructure
 
             services.AddScoped<IPropertyLookup, PropertyLookup>();
 
+            services.AddSingleton<ILiteDbContext, NetworkContext>();
+            services.AddTransient<NetworkContext>();
+            
             services.AddTransient<Func<ServiceEnum, ARpcFactory>>(_ => Key =>
             {
                 var factories = typeof(ARpcFactory)

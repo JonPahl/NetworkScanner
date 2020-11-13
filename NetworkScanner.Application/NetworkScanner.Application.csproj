@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\NetworkScanner.Domain\NetworkScanner.Domain.csproj" />
   </ItemGroup>
 
