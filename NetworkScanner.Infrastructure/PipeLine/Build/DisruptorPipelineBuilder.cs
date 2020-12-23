@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.PipeLine.Build
 {
+    /// <summary>
+    /// Build Pipeline for Disruptor
+    /// </summary>
     public class DisruptorPipelineBuilder : IPipelineBuilder
     {
         public IPipelineBuilderStep<TStepIn, TStepOut> Build<TStepIn, TStepOut>(Func<TStepIn, TStepOut> stepFunc, int workerCount)
         {
             var state = new State<TStepIn>();
-
             return state.AddStep(stepFunc, workerCount);
         }
 
@@ -55,7 +57,6 @@ namespace NetworkScanner.Infrastructure.PipeLine.Build
             {
                 evt.Write(_stepFunc.Invoke(evt.Read<TStepIn>()));
             }
-
             public void OnEvent(DisruptorEvent data, long sequence, bool endOfBatch)
             {
                 OnEvent(data);

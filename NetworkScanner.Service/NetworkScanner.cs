@@ -1,21 +1,13 @@
 ﻿using Microsoft.Extensions.Hosting;
 using NetworkScanner.Application.Common.Interface;
-using NetworkScanner.Application.Compare;
-using NetworkScanner.Domain.Display;
 using NetworkScanner.Domain.Entities;
-using NetworkScanner.Infrastructure;
 using NetworkScanner.Infrastructure.Display;
-using NetworkScanner.Infrastructure.Factory;
-using NetworkScanner.Infrastructure.HostName;
+using NetworkScanner.Infrastructure.IpFinder;
+using NetworkScanner.Service.WizBulb;
 using NetworkScanner.Service.Worker;
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,66 +20,84 @@ namespace NetworkScanner.Service
     /// <seealso cref="IDisposable"/>
     public class NetworkScanner : IHostedService, IDisposable
     {
+        private bool isDisposed;
         public int QueueLength;
-        private List<string> IpAddresses;
-        private readonly RangeFinder IpRange;
-        private readonly HashSet<string> FoundIpAddresses;
-        private readonly int timeout;
-        private int nFound;
+        private readonly ILogger Logger;
         private readonly object lockObj;
         private readonly Stopwatch stopWatch;
-        private PingWorkflow Workflow = null;
         private static System.Timers.Timer _timer;
         private readonly IBackgroundTaskQueue taskQueue;
-        private readonly IDisplayResult displayResult;
         private readonly SsdpWorker ssdpWorker;
         private readonly MdnsWorker mdnsWorker;
-        private readonly object _object;
-        private readonly ILiteDbContext liteDbContext;
-
-        private readonly ILogger Logger;
-        private List<Result> results = new List<Result>();
+        private readonly IpAddressWorker IpWorker;
+        private readonly DisplayResults Display;
+        private readonly WizBulbs WizBulbBuilder;
 
         #region Setup
 
         public NetworkScanner(ILiteDbContext dbContext)
         {
+            QueueLength = 0;
+
+            Display = new DisplayResults(dbContext, new WriteToNamedPipe());
             Logger = Log.ForContext<NetworkScanner>();
             taskQueue = new BackgroundTaskQueue();
-
-            liteDbContext = dbContext;
-            //var pipeName = "TestOne";
-
-            QueueLength = 0;
-            timeout = 2000;
-
-            _object = new object();
+            lockObj = new object();
             ssdpWorker = new SsdpWorker();
             mdnsWorker = new MdnsWorker();
-
-            displayResult = new WriteToNamedPipe();
-            lockObj = new object();
+            IpWorker = new IpAddressWorker();
             stopWatch = new Stopwatch();
-
-            IpRange = new RangeFinder();
-            IpAddresses = new List<string>();
-            FoundIpAddresses = new HashSet<string>();
+            WizBulbBuilder = new WizBulbs(taskQueue);
 
             FoundDeviceCollection.Changed += FoundDeviceCollection_Changed;
             SetupTimer(0, 5, 0);
         }
 
+        #region Dispose Section
+
         public void Dispose()
         {
-            stopWatch.Stop();
-            displayResult.PipeWriter.Close();
-            displayResult.PipeServer.Close();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        protected void Dispose(bool disposing)
+        {
+            if (isDisposed) return;
+
+            if (disposing)
+            {
+                stopWatch.Stop();
+                Display.Dispose();
+            }
+
+            isDisposed = true;
         }
 
+        #endregion
+
+        /// <summary>
+        /// pass in code set IP addresses.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            #region TODO: do this better;
+
+            var newAddressRange = new ScanAddresses
+            {
+                StartAddress = "192.168.1.1",
+                EndAddress = "192.168.1.254",
+                IsActive = true,
+                Inserted = DateTime.Now
+            };
+
+            var updateIp = new UpdateIpAddresses();
+            updateIp.InsertAddress(newAddressRange);
+
+            #endregion
+
             Console.WriteLine($"Service Started: {DateTime.Now}");
-            IpAddresses = IpRange.GetIPRange(IPAddress.Parse("192.168.1.1"), IPAddress.Parse("192.168.1.254")).ToList();
             await RunNetworkScanner().ConfigureAwait(false);
             Console.WriteLine("Setup Finished");
 
@@ -97,33 +107,11 @@ namespace NetworkScanner.Service
                 Console.Write($"# {QueueLength} Items: {DateTime.Now} ");
                 Thread.Sleep(1000);
             }
+
             Console.WriteLine();
             Console.WriteLine("Start Listeners");
 
-            /*
-            await ssdpWorker.RunAsync().ConfigureAwait(false);
-            mdnsWorker.Run();
-            */
-
-            #region build worker.
-            try
-            {
-                var WizBulbWorker = new WizBulbWorker(taskQueue, Logger);
-                WizBulbWorker.DoWork += WizBulbWorker_DoWork;
-                WizBulbWorker.ProgressChanged += WizBulbWorker_ProgressChanged;
-                WizBulbWorker.RunWorkerCompleted += WizBulbWorker_RunWorkerCompleted;
-
-                CancellationTokenSource cts = new CancellationTokenSource();
-                CancellationToken token = cts.Token;
-                cts.CancelAfter(new TimeSpan(0,0,30));
-                token.ThrowIfCancellationRequested();
-                await WizBulbWorker.ExecuteAsync(token).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            #endregion
+            await WizBulbBuilder.WizBulbBuilder().ConfigureAwait(false);
 
             _timer.Enabled = true;
             _timer.Start();
@@ -137,6 +125,7 @@ namespace NetworkScanner.Service
                         Thread.Sleep(1000);
                     }
                 }
+
                 Thread.Sleep(500);
             }
         }
@@ -145,6 +134,7 @@ namespace NetworkScanner.Service
 
         #endregion
 
+        #region Timer
         private void SetupTimer(int hr = 0, int min = 5, int sec = 0)
         {
             var delay = new TimeSpan(hr, min, sec);
@@ -159,7 +149,8 @@ namespace NetworkScanner.Service
             _timer.Enabled = false;
 
             Console.WriteLine($"NetworkScanner @{DateTime.Now}");
-            ScanIpAddresses().GetAwaiter().GetResult();
+
+            IpWorker.RunAsync().GetAwaiter().GetResult();
 
             ssdpWorker.RunAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             mdnsWorker.Run();
@@ -168,175 +159,17 @@ namespace NetworkScanner.Service
             _timer.Start();
         }
 
-        private async Task RunNetworkScanner() => await ScanIpAddresses().ConfigureAwait(false);
-        private async Task ScanIpAddresses()
-        {
-            nFound = 0;
+        #endregion
 
-            var tasks = new List<Task>();
-            stopWatch.Start();
+        private async Task RunNetworkScanner()
+            => await IpWorker.RunAsync().ConfigureAwait(false);
 
-            tasks.AddRange(from ip in IpAddresses select PingAndUpdateAsync(new Ping(), ip));
-
-            await Task.WhenAll(tasks).ContinueWith(_ =>
-            {
-                stopWatch.Stop();
-                var ts = stopWatch.Elapsed;
-                Console.WriteLine(nFound.ToString() + " devices found! Elapsed time: " + ts.ToString(), "Asynchronous");
-            }).ConfigureAwait(false);
-
-            ProcessesFoundAddresses();
-            WizBulbQueueItems();
-        }
-
-        private void WizBulbWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void WizBulbWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-        private void WizBulbWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void WizBulbQueueItems()
-        {
-            var WizBulbFactory = new WizBulbFactory();
-
-            foreach (var item in FoundDeviceCollection.collection.Where(x => x.Value.DeviceName != Utils.Common).Select(x => x.Value).Reverse())
-            {
-                taskQueue.QueueBackgroundWorkItem(async _ =>
-                {
-                    var result = await WizBulbFactory.FindValue(item.IpAddress, "").ConfigureAwait(false);
-                    results.Add(result);
-                });
-            }
-        }
-
-        public void FindDeviceId(object obj)
-        {
-            try
-            {
-                var fd = obj as FoundDevice;
-                var workflow = new PingWorkflow();
-                var DeviceId = workflow.FindDeviceId(fd);
-                fd.DeviceId = DeviceId.Value ?? Utils.Common;
-                FoundDeviceCollection.Add(fd);
-
-                Thread.Sleep(100);
-                QueueLength--;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
         private void FoundDeviceCollection_Changed(object sender, FoundDeviceChangedEventArgs e)
         {
-            lock (_object)
-            {
-                BuildTable();
-            }
-        }
-
-        #region Process found IP Addresses
-        private void ProcessesFoundAddresses()
-        {
-            foreach (var ip in FoundIpAddresses)
-            {
-                try
-                {
-                    Workflow = new PingWorkflow();
-
-                    var fd = Workflow.BuildObject<FoundDevice>(ip);
-                    var DeviceName = Workflow.FindDeviceName(fd);
-                    fd.DeviceName = DeviceName.Value ?? Utils.Common;
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(FindDeviceId), fd);
-                    QueueLength++;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            }
-        }
-
-        #endregion
-
-        #region Ping Asynchronous
-        private async Task PingAndUpdateAsync(Ping ping, string ip)
-        {
-            var reply = await ping.SendPingAsync(ip, timeout).ConfigureAwait(false);
-
-            if (reply.Status != IPStatus.Success)
-                return;
-
             lock (lockObj)
             {
-                var returnedIp = reply.Address.ToString();
-                FoundIpAddresses.Add(returnedIp);
-                nFound++;
+                Display.BuildTable();
             }
         }
-
-        #endregion
-
-        #region Display Results
-
-        private void BuildTable()
-        {
-            try
-            {
-                var devices = FoundDeviceCollection.collection.Select(x => x.Value).OrderBy(x => x, new FoundDeviceCompare());
-                var cnt = 1;
-                foreach (var device in devices)
-                {
-                    device.Id = cnt.ToString();
-                    device.Key = device.GetHashCode();
-                    cnt++;
-                }
-
-                #region Store to Db
-                //var ctx = new NetworkContext();
-
-                foreach (var device in devices)
-                {
-                    var result = liteDbContext.Merge(device);
-                    Console.WriteLine(result);
-                    /*
-                    var found = liteDbContext.KeyExists(device);
-                    if (found)
-                    {
-                        liteDbContext.Update(device);
-                    }
-                    else
-                    {
-                        liteDbContext.Insert(device);
-                    }
-                    */
-                }
-                #endregion
-
-                var tempWrite = DisplayTable(devices.Select(x => x).ToList());
-                displayResult.Display(tempWrite);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        private string DisplayTable(List<FoundDevice> devices)
-        {
-            return devices.ToStringTable(
-                new[] { "ID", "KEY", "IP ADDRESS", "DEVICE NAME", "DEVICE ID", "FOUND USING", "TIMESTAMP" },
-                a => a.Id, a => a.Key, a => a.IpAddress, a => a.DeviceName, a => a.DeviceId, a => a.FoundUsing, a => a.FoundAt);
-        }
-
-        #endregion Display Results
     }
 }

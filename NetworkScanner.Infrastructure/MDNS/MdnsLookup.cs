@@ -6,6 +6,9 @@ using System.Threading;
 
 namespace NetworkScanner.Infrastructure.MDNS
 {
+    /// <summary>
+    /// Lookup for MDNS
+    /// </summary>
     public class MdnsLookup
     {
         private readonly MulticastService mdns;
@@ -29,7 +32,8 @@ namespace NetworkScanner.Infrastructure.MDNS
 
         public void QuerySevices()
         {
-            CancellationTokenSource cancellation = new CancellationTokenSource(new TimeSpan(0, 0, 30));
+            CancellationTokenSource cancellation
+                = new CancellationTokenSource(new TimeSpan(0, 0, 30));
             StartListening();
 
             foreach (var service in Utils.LoadMdnsServices())
@@ -60,13 +64,10 @@ namespace NetworkScanner.Infrastructure.MDNS
 
                     var services = Utils.LoadMdnsServices();
                     var name = record.Name.ToString();
-                    if (services.Contains(name))
+                    if (services.Contains(name) && ARecord != null)
                     {
-                        if (ARecord != null)
-                        {
-                            var foundDevice = BuildResponse(ARecord, TRecord);
-                            Uow.Commit(foundDevice);
-                        }
+                        var foundDevice = BuildResponse(ARecord, TRecord);
+                        Uow.Commit(foundDevice);
                     }
                 }
             }

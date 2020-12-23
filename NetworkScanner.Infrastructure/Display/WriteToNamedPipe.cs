@@ -12,7 +12,6 @@ namespace NetworkScanner.Infrastructure.Display
 
         public WriteToNamedPipe(string pipeName = "TestOne")
         {
-            //var pipeName = "TestOne";
             PipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
             PipeServer.WaitForConnection();
             PipeWriter = new StreamWriter(PipeServer) { AutoFlush = true };
@@ -23,15 +22,15 @@ namespace NetworkScanner.Infrastructure.Display
             try
             {
                 PipeWriter.NewLine = "\r\n";
+                PipeWriter.AutoFlush = true;
                 PipeWriter.WriteLine(value);
-                PipeWriter.Flush();
+                //PipeWriter.Flush();
             }
             catch (IOException ex)
             {
                 if (ex.Message == "Pipe is broken.")
                 {
                     Console.Error.WriteLine("[NamedPipeServer]: NamedPipeClient was closed, exiting");
-                    return;
                 }
             }
         }

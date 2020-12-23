@@ -39,12 +39,10 @@ namespace NetworkScanner.Domain.Display
                     var value = values[rowIndex - 1];
 
                     #region
-                    foreach(var v in value.GetType().GetProperties())
+                    foreach (var v in value.GetType().GetProperties())
                     {
                         if (v.GetValue(value) == null)
-                        {
                             v.SetValue(value, string.Empty);
-                        }
                     }
                     #endregion
 

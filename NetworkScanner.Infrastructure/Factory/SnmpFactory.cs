@@ -29,7 +29,7 @@ namespace NetworkScanner.Infrastructure.Factory
         /// <summary>
         /// Finds the value.
         /// </summary>
-        /// <param name="ip">The ip.</param>
+        /// <param name="ip">The IP Address.</param>
         /// <param name="search">The search.</param>
         /// <returns></returns>
         public override Task<Result> FindValue(string ip, string search)
@@ -43,7 +43,8 @@ namespace NetworkScanner.Infrastructure.Factory
                 return !string.IsNullOrEmpty(oid)
                     ? Task.Run(() => new Result { Value = value, FoundAt = ServiceName.ToString() })
                     : Task.Run(() => new Result { Value = Utils.Common });
-            } catch(Exception)
+            }
+            catch (Exception)
             {
                 return Task.Run(() => new Result() { Value = Utils.Common });
             }

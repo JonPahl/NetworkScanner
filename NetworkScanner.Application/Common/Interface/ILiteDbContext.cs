@@ -1,7 +1,6 @@
 ﻿using LiteDB;
 using System.Collections.Generic;
 
-
 namespace NetworkScanner.Application.Common.Interface
 {
     public interface ILiteDbContext

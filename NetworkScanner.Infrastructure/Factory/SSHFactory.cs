@@ -1,6 +1,7 @@
 ﻿using NetworkScanner.Domain;
 using NetworkScanner.Domain.Entities;
 using Renci.SshNet;
+using Renci.SshNet.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace NetworkScanner.Infrastructure.Factory
         /// <summary>
         /// Finds the value.
         /// </summary>
-        /// <param name="ip">The ip.</param>
+        /// <param name="ip">The IP Address</param>
         /// <param name="search">The search.</param>
         /// <returns></returns>
         public override Task<Result> FindValue(string ip, string search)
@@ -92,7 +93,7 @@ namespace NetworkScanner.Infrastructure.Factory
             {
                 return null;
             }
-            catch(Renci.SshNet.Common.SshAuthenticationException)
+            catch (SshAuthenticationException)
             {
                 return null;
             }
@@ -102,8 +103,9 @@ namespace NetworkScanner.Infrastructure.Factory
             var results = new List<KeyValuePair<string, string>>();
 
             foreach (var item in cmdResult.Split("\n"))
-            {                
-                try {
+            {
+                try
+                {
                     var keyValue = item.Split("\t", StringSplitOptions.RemoveEmptyEntries);
                     if (keyValue?.Length > 0)
                     {
@@ -111,7 +113,9 @@ namespace NetworkScanner.Infrastructure.Factory
                         var pair = new KeyValuePair<string, string>(keyValue[0], value);
                         results.Add(pair);
                     }
-                } catch (IndexOutOfRangeException ex) {
+                }
+                catch (IndexOutOfRangeException ex)
+                {
                     Console.WriteLine(ex.Message);
                 }
             }

@@ -7,38 +7,32 @@ namespace Output
     public static class Program
     {
         internal const string pipeName = "TestOne";
-
-        //[STAThread]        
         public static void Main()
         {
-            //Console.SetWindowPosition(0, 0);
-            //Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
+            using NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
+            pipeClient.Connect();
+            
+            using StreamReader sr = new StreamReader(pipeClient);
+            // Display the read text to the console
+            string temp;
 
-            NamedPipeClientStream PipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
-            PipeClient.Connect();
-            StreamReader PipeReader = new StreamReader(PipeClient);
-            while (!PipeReader.EndOfStream)
+            while (!sr.EndOfStream)
             {
-                var result = PipeReader.ReadLine();
-                //if(result.Equals("9999"))
-                //{
-                //    Thread.Sleep(new TimeSpan(0, 0, 15));
-                //Console.Clear();
-                //Console.SetCursorPosition(0, 0);
-                //}
-                //else
-                //{
-                Console.WriteLine(result);
-                if (PipeReader.Peek().Equals(-1))
-                {
-                    //Console.Clear();
+                temp = sr.ReadLine();
+                Console.WriteLine(temp);
+
+                if (sr.Peek().Equals(-1))
                     Console.SetCursorPosition(0, 0);
-                }
-                //}
             }
 
-            PipeReader.Close();
-            PipeClient.Close();
+            var x = 0;
+            /*while ((temp = sr.ReadLine()) != null)
+            {
+                var line = sr.ReadLine();
+                Console.WriteLine(sr.ReadLine());
+                if (sr.Peek().Equals(-1))
+                    Console.SetCursorPosition(0, 0);
+            }*/
         }
     }
 }

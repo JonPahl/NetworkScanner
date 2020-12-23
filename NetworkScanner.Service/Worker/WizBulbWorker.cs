@@ -28,7 +28,8 @@ namespace NetworkScanner.Service.Worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var workItem = await TaskQueue.DequeueAsync(stoppingToken).ConfigureAwait(false);
+                var workItem = await TaskQueue.DequeueAsync(stoppingToken)
+                    .ConfigureAwait(false);
 
                 try
                 {
@@ -40,15 +41,6 @@ namespace NetworkScanner.Service.Worker
                 }
             }
         }
-
-        /*
-        public async Task StopAsync(CancellationToken stoppingToken)
-        {
-            _logger.Information("Queued Hosted Service is stopping.");
-            await base.StopAsync(stoppingToken);
-        }
-        */
-
     }
 
     public interface IBackgroundTaskQueue
@@ -77,7 +69,7 @@ namespace NetworkScanner.Service.Worker
 
         public async Task<Func<CancellationToken, Task>> DequeueAsync(CancellationToken cancellationToken)
         {
-            await _signal.WaitAsync(cancellationToken);
+            await _signal.WaitAsync(cancellationToken).ConfigureAwait(false);
             _workItems.TryDequeue(out var workItem);
             return workItem;
         }

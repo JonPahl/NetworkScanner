@@ -36,7 +36,7 @@ namespace NetworkScanner.Infrastructure.Factory
         /// <summary>
         /// Finds the value.
         /// </summary>
-        /// <param name="ip">The ip.</param>
+        /// <param name="ip">The IP address</param>
         /// <param name="search">The search.</param>
         /// <returns></returns>
         public override async Task<Result> FindValue(string ip, string search)

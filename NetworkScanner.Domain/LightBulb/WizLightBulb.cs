@@ -8,7 +8,7 @@ using System.Text;
 
 namespace NetworkScanner.Domain.LightBulb
 {
-    #nullable enable
+#nullable enable
 
     public class WizLightBulb
     {
@@ -23,8 +23,7 @@ namespace NetworkScanner.Domain.LightBulb
             remoteEP = null;
             sendClient = new UdpClient();
             var timeOut = new TimeSpan(0, 5, 0);
-            sendClient.Client.ReceiveTimeout = Convert.ToInt32(timeOut.TotalMilliseconds); //10 seconds.
-
+            sendClient.Client.ReceiveTimeout = Convert.ToInt32(timeOut.TotalMilliseconds);
             localEP = new IPEndPoint(IPAddress.Any, localPort);
             InitStuff();
         }
@@ -39,7 +38,6 @@ namespace NetworkScanner.Domain.LightBulb
 
                 const string payload = "{\"method\":\"getPilot\",\"params\":{}}";
 
-                //var payload = PayloadBuilder.BuildPayload("getPilot");
                 byte[] send_buffer = Encoding.ASCII.GetBytes(payload);
                 sendClient.Send(send_buffer, send_buffer.Length, remoteEP);
 
@@ -49,16 +47,16 @@ namespace NetworkScanner.Domain.LightBulb
                 var result = JsonConvert.DeserializeObject<WizMsg>(json);
                 var mac = Utils.Common;
 
-                if(result.method.Equals("firstBeat"))
+                if (result.method.Equals("firstBeat"))
                 {
                     var firstBeat = JsonConvert.DeserializeObject<FirstBeat>(json);
-                    return firstBeat._params.mac;
+                    return firstBeat._Params.mac;
                 }
 
                 if (result == null)
                 {
                     var firstBeat = JsonConvert.DeserializeObject<FirstBeat>(json);
-                    return firstBeat._params.mac;
+                    return firstBeat._Params.mac;
                 }
                 else if (result == null)
                 {

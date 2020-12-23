@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.Upnp
 {
+    /// <summary>
+    /// UPNP Search class
+    /// </summary>
     public class UpnpSearcher
     {
         private ISsdpDeviceLocator deviceLocator;
@@ -18,18 +21,11 @@ namespace NetworkScanner.Infrastructure.Upnp
         {
             deviceLocator = new SsdpDeviceLocator();
             deviceLocator.DeviceAvailable += DeviceLocator_DeviceAvailable;
-
             auow = new UpnpUow();
         }
 
-        public void StartListening()
-        {
-            deviceLocator.StartListeningForNotifications();
-        }
-        public void StopListening()
-        {
-            deviceLocator.StopListeningForNotifications();
-        }
+        public void StartListening() => deviceLocator.StartListeningForNotifications();
+        public void StopListening() => deviceLocator.StopListeningForNotifications();
 
         private void DeviceLocator_DeviceAvailable(object sender, DeviceAvailableEventArgs e)
         {
@@ -42,7 +38,8 @@ namespace NetworkScanner.Infrastructure.Upnp
                 var foundDevice = auow.BuildObject<FoundDevice, List<object>>(objs);
 
                 FoundDeviceCollection.Add(foundDevice);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

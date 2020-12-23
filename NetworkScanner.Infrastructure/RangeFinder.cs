@@ -9,17 +9,16 @@ using System.Net;
 * Free for private & commercial use - no restriction applied, please leave credits.
 *                              DO NOT REMOVE THIS COMMENT
 * ==================================================================================== */
-
 namespace NetworkScanner.Infrastructure
 {
     public class RangeFinder
     {
         /// <summary>
-        /// Gets the ip range.
+        /// Build out a range of IP addresses between starting and ending address
         /// </summary>
-        /// <param name="startIP">The start ip.</param>
-        /// <param name="endIP">The end ip.</param>
-        /// <returns></returns>
+        /// <param name="startIP">The start IP Address.</param>
+        /// <param name="endIP">The end IP Address.</param>
+        /// <returns>List of strings</returns>
         public IEnumerable<string> GetIPRange(IPAddress startIP, IPAddress endIP)
         {
             uint sIP = IpToUint(startIP.GetAddressBytes());
@@ -34,8 +33,8 @@ namespace NetworkScanner.Infrastructure
         /// <summary>
         /// Reverses the bytes array. Reverse byte order in array
         /// </summary>
-        /// <param name="ip">The ip.</param>
-        /// <returns></returns>
+        /// <param name="ip">The IP Address</param>
+        /// <returns>return Uint</returns>
         protected uint ReverseBytesArray(uint ip)
         {
             byte[] bytes = BitConverter.GetBytes(ip);
@@ -44,11 +43,11 @@ namespace NetworkScanner.Infrastructure
         }
 
         /// <summary>
-        /// Ips to uint.
+        /// Convert IP byte array to uint.
         /// Convert bytes array to 32 bit long value
         /// </summary>
-        /// <param name="ipBytes">The ip bytes.</param>
-        /// <returns></returns>
+        /// <param name="ipBytes">The IP bytes.</param>
+        /// <returns>return Uint</returns>
         protected uint IpToUint(byte[] ipBytes)
         {
             ByteConverter bConvert = new ByteConverter();
@@ -71,7 +70,6 @@ namespace NetworkScanner.Infrastructure
 
                 shift -= 8;
             }
-
             return ipUint;
         }
     }

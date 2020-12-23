@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.Ssdp
 {
+    /// <summary>
+    /// SSDP Finder
+    /// </summary>
     public class SsdpFinder
     {
         private readonly ISsdpDeviceLocator deviceLocator;
@@ -40,17 +43,13 @@ namespace NetworkScanner.Infrastructure.Ssdp
             }
         }
 
-        public bool IsSearching()
-        {
-            return deviceLocator.IsSearching;
-        }
+        public bool IsSearching() => deviceLocator.IsSearching;
 
         /// <summary>
-        /// Searches the specified ip.
+        /// Searches the specified IP Address.
+        /// //string IP, string term)
         /// </summary>
-        /// <param name="ip">The ip.</param>
-        /// <param name="term">The term.</param>
-        public async Task Search() //string ip, string term)
+        public async Task Search()
         {
             try
             {

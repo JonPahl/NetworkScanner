@@ -5,13 +5,15 @@ using NetworkScanner.Infrastructure.Factory;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 
 namespace NetworkScanner.Infrastructure.Workflow
 {
+    /// <summary>
+    /// Unit of Work
+    /// </summary>
     public abstract class Auow : IUnitOfWork
     {
         protected RpcFactory Factory;
@@ -81,14 +83,10 @@ namespace NetworkScanner.Infrastructure.Workflow
         }
 
         public virtual Result FindDeviceName(FoundDevice device)
-        {
-            throw new NotImplementedException();
-        }
+            => null;
 
         public virtual Result FindDeviceId(FoundDevice device)
-        {
-            throw new NotImplementedException();
-        }
+            => null;
 
         public string NameOfCallingClass()
         {

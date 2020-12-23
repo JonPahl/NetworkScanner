@@ -1,5 +1,8 @@
 ﻿namespace NetworkScanner.Infrastructure.PipeLine.Build
 {
+    /// <summary>
+    /// Custom Event for Pipeline
+    /// </summary>
     public class DisruptorEvent
     {
         public object Value { get; set; }

@@ -23,17 +23,15 @@ namespace NetworkScanner.Infrastructure.Factory
         /// <summary>
         /// Finds the value.
         /// </summary>
-        /// <param name="ip">The ip.</param>
+        /// <param name="ip">The IP Address</param>
         /// <param name="search">The search.</param>
         /// <returns></returns>
         public override Task<Result> FindValue(string ip, string search)
-        {
-            return (search.ToUpper()) switch
+            => (search.ToUpper()) switch
             {
                 "SYSTEMNAME" => DoLookup(ip),
                 _ => Task.Run(() => new Result { Value = Utils.Common }),
             };
-        }
 
         private Task<Result> DoLookup(string ip)
         {

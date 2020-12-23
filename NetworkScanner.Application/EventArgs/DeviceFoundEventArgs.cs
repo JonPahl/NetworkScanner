@@ -7,7 +7,7 @@ namespace NetworkScanner.Application.EventArgs
     /// Event fired when an IP address is reachable via Ping command.
     /// </summary>
     /// <seealso cref="EventArgs"/>
-    public class DeviceFoundEventArgs//: EventArgs
+    public class DeviceFoundEventArgs
     {
         public int Found { get; set; }
         public DateTime TimeReached { get; set; }

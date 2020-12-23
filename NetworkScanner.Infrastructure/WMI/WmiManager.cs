@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Management;
-using System.Runtime.InteropServices;
 
 namespace NetworkScanner.Infrastructure.WMI
 {
+    /// <summary>
+    /// WMI Manager
+    /// </summary>
     public class WmiManager
     {
         private readonly ManagementScope scope;
 
         public WmiManager(string ipAddress)
-        {
-            scope = new ManagementScope($"\\\\{ipAddress}\\root\\cimv2");
-        }
+            => scope = new ManagementScope($"\\\\{ipAddress}\\root\\cimv2");
 
         public Dictionary<string, string> FindProperty(string table, List<string> fields)
         {

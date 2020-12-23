@@ -1,11 +1,13 @@
 ﻿using Disruptor.Dsl;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.PipeLine.Build
 {
+    /// <summary>
+    /// Disruptor Pipeline
+    /// </summary>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TOut"></typeparam>
     public class DisruptorPipeline<TIn, TOut> : IPipeline<TIn, TOut>
     {
         private readonly Disruptor<DisruptorEvent> _disruptor;
@@ -18,7 +20,8 @@ namespace NetworkScanner.Infrastructure.PipeLine.Build
 
         public Task<TOut> Execute(TIn data)
         {
-            // RunContinuationsAsynchronously to prevent continuation from "stealing" the releaser thread
+            // RunContinuationsAsynchronously to prevent continuation from "stealing" 
+            // the releaser thread
             var tcs = new TaskCompletionSource<TOut>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var sequence = _disruptor.RingBuffer.Next();
@@ -30,9 +33,6 @@ namespace NetworkScanner.Infrastructure.PipeLine.Build
             return tcs.Task;
         }
 
-        public void Dispose()
-        {
-            _disruptor.Shutdown();
-        }
+        public void Dispose() => _disruptor.Shutdown();
     }
 }

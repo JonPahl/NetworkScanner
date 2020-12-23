@@ -16,7 +16,7 @@ namespace NetworkScanner.Infrastructure.Database
 
         public NetworkContext(IOptions<LiteDbOptions> options)
         {
-            var filePath = options.Value.DatabaseLocation.Replace(@"\\",@"\");
+            var filePath = options.Value.DatabaseLocation.Replace(@"\\", @"\");
             var connection = options.Value.Connection;
             DbName = $"Filename={filePath};Connection={connection}";
             // ;Connection={options.Value.Connection}";
@@ -29,9 +29,8 @@ namespace NetworkScanner.Infrastructure.Database
             try
             {
                 var device = item as FoundDevice;
-                using var db = new LiteDatabase(DbName);
-                // Get a collection (or create, if doesn't exist)
-                var col = db.GetCollection<FoundDevice>(CollectionName);
+                using LiteDatabase liteDatabase = new LiteDatabase(DbName);
+                var col = liteDatabase.GetCollection<FoundDevice>(CollectionName);
                 col.EnsureIndex(x => x.Id, true);
 
                 var result = col.Insert(device);
@@ -67,7 +66,11 @@ namespace NetworkScanner.Infrastructure.Database
             //using var db = new LiteDatabase(DbName);
             //var result = db.GetCollection<FoundDevice>(CollectionName).Query().Where(x => x.DeviceId == Convert.ToString(key)).ToList();
 
-            var result = Database.GetCollection<FoundDevice>(CollectionName).Query().Where(x => x.IpAddress == Convert.ToString(key)).ToList();
+            var result = Database
+                .GetCollection<FoundDevice>(CollectionName)
+                .Query()
+                .Where(x => x.IpAddress == Convert.ToString(key))
+                .ToList();
 
             var found = result.Count > 0;
             return found;
@@ -77,7 +80,7 @@ namespace NetworkScanner.Infrastructure.Database
         {
             using var db = new LiteDatabase(DbName);
             var collection = db.GetCollection(CollectionName).FindAll();
-            return (List<T>) Convert.ChangeType(collection.ToList(), typeof(List<T>));
+            return (List<T>)Convert.ChangeType(collection.ToList(), typeof(List<T>));
         }
 
         public T Load<T>(object search)

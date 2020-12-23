@@ -6,8 +6,16 @@ using System.Collections.Generic;
 
 namespace NetworkScanner.Infrastructure.HostName
 {
+    /// <summary>
+    /// Custom unit of work to find Reachable IP Addresses
+    /// </summary>
     public class PingWorkflow : Auow
     {
+        /// <summary>
+        /// Lookup device names based on provided object.
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
         public override Result FindDeviceName(FoundDevice device)
         {
             const string Property = "SYSTEMNAME";
@@ -40,19 +48,29 @@ namespace NetworkScanner.Infrastructure.HostName
             }
         }
 
+        /// <summary>
+        /// Build object to display results.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="ip"></param>
+        /// <returns></returns>
         public override T BuildObject<T>(string ip)
         {
-            var fd = base.BuildObject<FoundDevice>(ip);
-            fd.Id = "0";
-            fd.FoundUsing = "PIPE";
-            fd.FoundAt = DateTime.Now;
-            fd.Key = "";
+            var device = base.BuildObject<FoundDevice>(ip);
+            device.Id = 0;
+            device.FoundUsing = "PIPE";
+            device.FoundAt = DateTime.Now;
+            //device.Key = "";
+            device.Key = device.GetHashCode();
 
-            fd.Key = fd.GetHashCode();
-
-            return (T)Convert.ChangeType(fd, fd.GetType());
+            return (T)Convert.ChangeType(device, device.GetType());
         }
 
+        /// <summary>
+        /// Lookup Device ID
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
         public override Result FindDeviceId(FoundDevice device)
         {
             const string Property = "Serial";
@@ -65,16 +83,17 @@ namespace NetworkScanner.Infrastructure.HostName
 
             try
             {
-                foreach (var f in Factories)
+                foreach (var factory in Factories)
                 {
-                    if (f.ServiceName.Equals(ServiceEnum.SSH))
-                        f.SetCommands(new List<object> { "cat /proc/cpuinfo" });
+                    if (factory.ServiceName.Equals(ServiceEnum.SSH))
+                        factory.SetCommands(new List<object> { "cat /proc/cpuinfo" });
 
-                    var result = f.FindValue(device.IpAddress, Property).GetAwaiter().GetResult();
+                    var result = factory.FindValue(device.IpAddress, Property)
+                        .GetAwaiter().GetResult();
                     if (result.Value != Utils.Common)
                     {
-                        Console.WriteLine($"{Property} :: {f.ServiceName} | {device.IpAddress} | {result.Value}");
-                        return new Result { Value = result.Value, FoundAt = f.ServiceName.ToString() };
+                        Console.WriteLine($"{Property} :: {factory.ServiceName} | {device.IpAddress} | {result.Value}");
+                        return new Result { Value = result.Value, FoundAt = factory.ServiceName.ToString() };
                     }
                 }
 

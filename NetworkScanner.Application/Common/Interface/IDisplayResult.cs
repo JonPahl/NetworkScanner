@@ -7,7 +7,6 @@ namespace NetworkScanner.Application.Common.Interface
     {
         public NamedPipeServerStream PipeServer { get; set; }
         public StreamWriter PipeWriter { get; set; }
-
         public void Display(string value);
     }
 }

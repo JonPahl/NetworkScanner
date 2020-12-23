@@ -3,10 +3,13 @@ using System.Collections.ObjectModel;
 
 namespace NetworkScanner.Domain
 {
+    /// <summary>
+    /// Custom observable collection that only allows distinct values.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class UniqueObservableCollection<T> : ObservableCollection<T>
     {
         private Dictionary<int, T> _itemsDict = new Dictionary<int, T>();
-
         protected override void InsertItem(int index, T item)
         {
             var c = item.GetHashCode();
@@ -23,13 +26,11 @@ namespace NetworkScanner.Domain
                 base.InsertItem(index, item);
             }
         }
-
         protected override void ClearItems()
         {
             _itemsDict.Clear();
             base.ClearItems();
         }
-
         protected override void RemoveItem(int index)
         {
             if (index >= base.Items.Count)

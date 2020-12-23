@@ -28,10 +28,7 @@ namespace NetworkScanner.Infrastructure.SSH
                 using SshClient ssh = new SshClient(options.IpAddress, options.User, options.Pwd);
                 ssh.Connect();
                 if (ssh.IsConnected)
-                {
-                    var result = ssh.RunCommand(cmd);
-                    cmdResult = result.Result;
-                }
+                    cmdResult = ssh.RunCommand(cmd).Result;
                 ssh.Disconnect();
 
                 if (cmdResult != null)

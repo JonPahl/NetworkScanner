@@ -1,5 +1,4 @@
 ﻿using ObjectsComparer;
-//using PipleLineExample.Display;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,15 +9,13 @@ namespace NetworkScanner.Domain.Entities
     public static class FoundDeviceCollection
     {
         public static event EventHandler<FoundDeviceChangedEventArgs> Changed;
-        public static ConcurrentDictionary<int, FoundDevice> collection;
-        private static readonly ObjectsComparer.Comparer<FoundDevice> comparer;
-        public static bool Issynchronized { get; internal set; }
+        public static ConcurrentDictionary<int, FoundDevice> collection
+            = new ConcurrentDictionary<int, FoundDevice>();
 
-        static FoundDeviceCollection()
-        {
-            collection = new ConcurrentDictionary<int, FoundDevice>();
-            comparer = new ObjectsComparer.Comparer<FoundDevice>();
-        }
+        private static readonly ObjectsComparer.Comparer<FoundDevice> comparer
+            = new ObjectsComparer.Comparer<FoundDevice>();
+
+        public static bool Issynchronized { get; internal set; }
 
         /// <summary>
         /// Adds the specified device.
@@ -59,7 +56,8 @@ namespace NetworkScanner.Domain.Entities
                         }
                         else
                         {
-                            var deviceId = differences.FirstOrDefault(x => x.MemberPath == "DeviceId");
+                            var deviceId = differences
+                                .FirstOrDefault(x => x.MemberPath.Equals("DeviceId"));
                             if (deviceId == null)
                             {
                                 if (collection.TryUpdate(existingItem.GenerateId(), newItem, existingItem))
@@ -67,12 +65,7 @@ namespace NetworkScanner.Domain.Entities
                             }
                             else
                             {
-                                //if (deviceId.Value1.Equals(Utils.Common) && !deviceId.Value2.Equals(Utils.Common)) {
-                                //    //var v1 = deviceId.Value1; var v2 = deviceId.Value2;var x = 0;
-                                //    //new Item had invalid device Id.
-                                //} else {
-                                    MergeRecord(existingItem.GenerateId(), newItem);
-                                //}
+                                MergeRecord(existingItem.GenerateId(), newItem);
                             }
                         }
                     }
@@ -98,7 +91,8 @@ namespace NetworkScanner.Domain.Entities
                     if (!collection.ContainsKey(newItem.GenerateId()) && collection.TryAdd(newItem.GenerateId(), newItem))
                         Changed?.Invoke(newItem, new FoundDeviceChangedEventArgs(ChangeType.Added, newItem, null));
                 }
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

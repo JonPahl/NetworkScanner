@@ -6,7 +6,7 @@ using System.Net;
 namespace NetworkScanner.Application.Compare
 {
     /// <summary>
-    /// Compares two ip addresses.
+    /// Compares two IP addresses.
     /// http://stackoverflow.com/questions/4785218/linq-lambda-orderby-delegate-for-liststring-of-ip-addresses
     /// </summary>
     public class IpComparer : IComparer<IPAddress>
@@ -24,14 +24,10 @@ namespace NetworkScanner.Application.Compare
         public int Compare(IPAddress first, IPAddress second)
         {
             if (first is null)
-            {
                 throw new ArgumentNullException(nameof(first));
-            }
 
             if (second is null)
-            {
                 throw new ArgumentNullException(nameof(second));
-            }
 
             byte[] bytesOfX = first.GetAddressBytes();
             byte[] bytesOfY = second.GetAddressBytes();

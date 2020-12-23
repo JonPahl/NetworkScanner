@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace NetworkScanner.Infrastructure.Upnp
 {
+    /// <summary>
+    /// Unit of work for UPNP Protocol
+    /// </summary>
     public class UpnpUow : Auow
     {
         public override TOutput BuildObject<TOutput, TInput>(TInput raw)

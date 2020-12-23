@@ -38,13 +38,11 @@ namespace NetworkScanner.Application
         protected void OnDeviceReached(DeviceFoundEventArgs e) => EventHostFound?.Invoke(this, e);
 
         /// <summary>
-        /// Sets the ip addresses.
+        /// Sets the IP addresses.
         /// </summary>
-        /// <param name="ipRanges">The ip ranges.</param>
+        /// <param name="ipRanges">The IP ranges.</param>
         public void SetIpAddresses(IList<string> ipRanges)
-        {
-            (ipAddresses ??= new List<string>()).AddRange(ipRanges);
-        }
+            => (ipAddresses ??= new List<string>()).AddRange(ipRanges);
 
         /// <summary>
         /// Runs the ping.
@@ -74,7 +72,7 @@ namespace NetworkScanner.Application
                     IpAddress = reply.Address.ToString(),
                     DeviceId = Utils.Common,
                     DeviceName = Utils.Common,
-                    Id = cnt.ToString(),
+                    Id = cnt,
                     FoundAt = DateTime.Now,
                     FoundUsing = "Ping"
                 };

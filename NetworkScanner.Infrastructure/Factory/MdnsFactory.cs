@@ -39,26 +39,22 @@ namespace NetworkScanner.Infrastructure.Factory
                             #region Store result                    
                             ResourceRecord record = msg.Answers.FirstOrDefault();
 
-                            /* var foundDevice = new FoundDevice {
-                                FoundAt = record.CreationTime,
-                                FoundUsing = "Mdns",
-                                DeviceName = Utils.Common,
-                                DeviceId = Utils.Common,
-                                IpAddress = $"192.161.2.{random.Next(1, 254)}"
-                            }; */
-
                             if (msg.AdditionalRecords != null)
                             {
-                                ARecord = (AddressRecord)msg.AdditionalRecords.Find(x => x.Type.Equals(DnsType.A));
-                                TRecord = (TXTRecord)msg.AdditionalRecords.Find(x => x.Type.Equals(DnsType.TXT));
+                                ARecord = (AddressRecord)msg
+                                    .AdditionalRecords.Find(x => x.Type.Equals(DnsType.A));
+                                TRecord = (TXTRecord)msg
+                                    .AdditionalRecords.Find(x => x.Type.Equals(DnsType.TXT));
 
                                 var DeviceName = Utils.Common;
                                 var DeviceId = Utils.Common;
 
                                 if (ARecord?.Address.ToString().Equals(ip) == true)
-                                {                                    
-                                    DeviceId = ARecord.Name.Labels.FirstOrDefault()?.Replace("-", "") ?? Utils.Common;
-                                    DeviceName = ARecord.Name.Labels.FirstOrDefault() ?? Utils.Common;                                    
+                                {
+                                    DeviceId = ARecord.Name.Labels
+                                        .FirstOrDefault()?.Replace("-", "") ?? Utils.Common;
+                                    DeviceName = ARecord.Name.Labels
+                                        .FirstOrDefault() ?? Utils.Common;
                                 }
 
                                 if (TRecord != null)
@@ -83,13 +79,13 @@ namespace NetworkScanner.Infrastructure.Factory
 
                                 if (ARecord != null || TRecord != null)
                                 {
-                                    //Uow.Commit(foundDevice); 
+                                    // Uow.Commit(foundDevice); 
                                     return Task.Run(() => result);
                                 }
                             }
                             else
-                            {                                
-                                //todo: what should I do then...
+                            {
+                                // ToDo: what should I do then...
                             }
                             #endregion                            
                         }
@@ -115,13 +111,11 @@ namespace NetworkScanner.Infrastructure.Factory
                 query.Questions.Add(new Question { Name = service, Type = DnsType.ANY });
                 var cancellation = new CancellationTokenSource(10000);
 
-                using var mdns = new MulticastService();
+                using MulticastService mdns = new MulticastService();
                 mdns.AnswerReceived += Mdns_AnswerReceived;
 
                 mdns.Start();
-                var response = await mdns.ResolveAsync(query, cancellation.Token).ConfigureAwait(false);
-                // Do something
-
+                Message response = await mdns.ResolveAsync(query, cancellation.Token).ConfigureAwait(false);
                 mdns.Stop();
                 return response;
             }
@@ -132,7 +126,7 @@ namespace NetworkScanner.Infrastructure.Factory
         }
         private void Mdns_AnswerReceived(object sender, MessageEventArgs e)
         {
-            Console.WriteLine(e.Message.ToString());            
+            Console.WriteLine(e.Message.ToString());
         }
     }
 }
