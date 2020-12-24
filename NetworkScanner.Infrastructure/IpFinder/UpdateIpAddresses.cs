@@ -1,15 +1,16 @@
-﻿using NetworkScanner.Domain.Entities;
+﻿using NetworkScanner.Application.Common.Interface;
+using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure.Database;
 
 namespace NetworkScanner.Infrastructure.IpFinder
 {
     public class UpdateIpAddresses
     {
-        private readonly ScanAddressContext ScanContext;
+        private readonly ICrud ScanContext;
 
         public UpdateIpAddresses()
         {
-            ScanContext = new ScanAddressContext();
+            ScanContext = new MongoDbContext();
         }
 
         public bool InsertAddress(ScanAddresses address)

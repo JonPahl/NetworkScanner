@@ -1,4 +1,5 @@
-﻿using NetworkScanner.Domain.Entities;
+﻿using NetworkScanner.Application.Common.Interface;
+using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure.Database;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,14 @@ namespace NetworkScanner.Infrastructure.IpFinder
     {
         private readonly RangeFinder IpRange;
         public List<string> IpAddresses;
-        private readonly ScanAddressContext ScanContext;
-        public FindIpAddresses()
+        /// private readonly ScanAddressContext ScanContext;
+        private ICrud ScanContext { get; set; }
+        public FindIpAddresses(ICrud context)
         {
             IpRange = new RangeFinder();
             IpAddresses = new List<string>();
-            ScanContext = new ScanAddressContext();
+            ScanContext = context; //new ScanAddressContext();
+            // ElasticSearchContext
         }
 
         /// <summary>
@@ -29,8 +32,9 @@ namespace NetworkScanner.Infrastructure.IpFinder
         {
             get
             {
-                return ScanContext.LoadAll<ScanAddresses>()
-                    .FindAll(x => x.IsActive.Equals(true));
+                var addresses = ScanContext.LoadAllAsync<ScanAddresses>().GetAwaiter().GetResult();
+                return addresses.FindAll(x => x.IsActive.Equals(true));
+                //return ScanContext.LoadAll<ScanAddresses>().FindAll(x => x.IsActive.Equals(true));
             }
         }
 

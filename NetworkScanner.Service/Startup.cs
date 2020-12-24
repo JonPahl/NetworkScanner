@@ -4,15 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure;
 using NetworkScanner.Infrastructure.Database;
 using Serilog;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace NetworkScanner.Service
 {
@@ -45,12 +43,23 @@ namespace NetworkScanner.Service
             // Add access to generic IConfigurationRoot
             services.AddSingleton(Configuration);
             services.Configure<LiteDbOptions>(Configuration.GetSection("LiteDbOptions"));
-
+            services.Configure<ScanOptions>(Configuration.GetSection("ScanOptions"));
             //services.AddSingleton(writer);
             services.AddInfrastructure((IConfigurationRoot)Configuration);
             services.AddHostedService<NetworkScanner>();
 
-            services.AddTransient(x => new NetworkScanner(x.GetRequiredService<NetworkContext>()));
+            services.AddTransient(x => new NetworkScanner(
+                x.GetRequiredService<MongoDbContext>(),
+                x.GetRequiredService<IOptions<ScanOptions>>()
+            ));
+
+            /*
+            services.AddTransient(x => new NetworkScanner(
+                x.GetRequiredService<NetworkContext>(),
+                x.GetRequiredService<IOptions<ScanOptions>>()
+            ));
+            */
+
         }
 
         /// <summary>

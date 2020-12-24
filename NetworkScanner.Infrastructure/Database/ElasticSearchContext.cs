@@ -1,8 +1,11 @@
-﻿using Elasticsearch.Net;
+﻿/*
+using Elasticsearch.Net;
 using Nest;
 using NetworkScanner.Application.Common.Interface;
 using NetworkScanner.Domain.Entities;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.Database
 {
@@ -26,6 +29,11 @@ namespace NetworkScanner.Infrastructure.Database
 
         public int Delete<T>(T item) => throw new NotImplementedException();
 
+        public List<T> FindById<T>(string id)
+        {
+            throw new NotImplementedException();
+        }
+
         public int Insert<T>(T item)
         {
             var device = item as FoundDevice;
@@ -38,6 +46,13 @@ namespace NetworkScanner.Infrastructure.Database
 
         public bool KeyExists<T>(T key) => false;
 
+        public async Task<List<T>> LoadAllAsync<T>()
+        {
+            throw new NotImplementedException();
+        }
+
         public int Update<T>(T item) => -1;
+        
     }
 }
+*/

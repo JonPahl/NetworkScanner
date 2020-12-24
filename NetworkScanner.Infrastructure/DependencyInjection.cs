@@ -28,8 +28,14 @@ namespace NetworkScanner.Infrastructure
 
             services.AddScoped<IPropertyLookup, PropertyLookup>();
 
-            services.AddSingleton<ILiteDbContext, NetworkContext>();
-            services.AddTransient<NetworkContext>();
+            services.AddSingleton<ICrud, MongoDbContext>();
+            services.AddTransient<MongoDbContext>();
+
+            //services.AddSingleton<ICrud, ElasticSearchContext>();
+            //services.AddTransient<ElasticSearchContext>();
+
+            //services.AddSingleton<ILiteDbContext, NetworkContext>();
+            //services.AddTransient<NetworkContext>();
 
             services.AddTransient<Func<ServiceEnum, ARpcFactory>>(_ => Key =>
             {

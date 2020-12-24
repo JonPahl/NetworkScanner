@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using NetworkScanner.Application.Common.Interface;
 using NetworkScanner.Domain.Entities;
 using NetworkScanner.Infrastructure.Display;
@@ -32,13 +33,13 @@ namespace NetworkScanner.Service
         private readonly IpAddressWorker IpWorker;
         private readonly DisplayResults Display;
         private readonly WizBulbs WizBulbBuilder;
+        private ScanOptions ScanOptions { get; }
 
         #region Setup
 
-        public NetworkScanner(ILiteDbContext dbContext)
+        public NetworkScanner(ICrud dbContext, IOptions<ScanOptions> scanoptions)
         {
             QueueLength = 0;
-
             Display = new DisplayResults(dbContext, new WriteToNamedPipe());
             Logger = Log.ForContext<NetworkScanner>();
             taskQueue = new BackgroundTaskQueue();
@@ -48,6 +49,7 @@ namespace NetworkScanner.Service
             IpWorker = new IpAddressWorker();
             stopWatch = new Stopwatch();
             WizBulbBuilder = new WizBulbs(taskQueue);
+            ScanOptions = scanoptions.Value;
 
             FoundDeviceCollection.Changed += FoundDeviceCollection_Changed;
             SetupTimer(0, 5, 0);
@@ -83,17 +85,20 @@ namespace NetworkScanner.Service
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             #region TODO: do this better;
-
+            /*
             var newAddressRange = new ScanAddresses
             {
-                StartAddress = "192.168.1.1",
-                EndAddress = "192.168.1.254",
+                StartAddress = ScanOptions.StartIp, // "192.168.1.1",
+                EndAddress = ScanOptions.EndIp, // "192.168.1.254",
                 IsActive = true,
                 Inserted = DateTime.Now
             };
+            */
 
-            var updateIp = new UpdateIpAddresses();
-            updateIp.InsertAddress(newAddressRange);
+            //var updateIp = new UpdateIpAddresses();
+            //updateIp.InsertAddress(newAddressRange);
+
+            
 
             #endregion
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LiteDB;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
@@ -6,6 +7,7 @@ namespace NetworkScanner.Domain.Entities
 {
     public class FoundDevice
     {
+        [BsonId]
         [Display(Name = "ID", Order = 0)]
         public int Id { get; set; }
 

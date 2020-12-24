@@ -1,10 +1,12 @@
-﻿using LiteDB;
+﻿/*
+using LiteDB;
 using Microsoft.Extensions.Options;
 using NetworkScanner.Application.Common.Interface;
 using NetworkScanner.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.Database
 {
@@ -66,11 +68,8 @@ namespace NetworkScanner.Infrastructure.Database
             //using var db = new LiteDatabase(DbName);
             //var result = db.GetCollection<FoundDevice>(CollectionName).Query().Where(x => x.DeviceId == Convert.ToString(key)).ToList();
 
-            var result = Database
-                .GetCollection<FoundDevice>(CollectionName)
-                .Query()
-                .Where(x => x.IpAddress == Convert.ToString(key))
-                .ToList();
+            var result = Database.GetCollection<FoundDevice>(CollectionName).Query()
+                .Where(x => x.IpAddress == Convert.ToString(key)).ToList();
 
             var found = result.Count > 0;
             return found;
@@ -94,9 +93,22 @@ namespace NetworkScanner.Infrastructure.Database
 
         public bool Merge<T>(T item)
         {
-            //var device = item as FoundDevice;            
-            var collection = Database.GetCollection<T>(CollectionName);
-            return collection.Upsert(item);
+            var device = item as FoundDevice;
+            var collection = Database.GetCollection<FoundDevice>(CollectionName);
+            return collection.Upsert(device);
+        }
+
+        public async Task<List<T>> LoadAllAsync<T>()
+        {
+            using var db = new LiteDatabase(DbName);
+            List<T> collection = db?.GetCollection<T>(CollectionName).FindAll().ToList();
+            return (List<T>)Convert.ChangeType(collection, typeof(List<T>));
+        }
+
+        public List<T> FindById<T>(string id)
+        {
+            throw new NotImplementedException();
         }
     }
 }
+*/

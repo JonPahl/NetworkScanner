@@ -12,12 +12,12 @@ namespace NetworkScanner.Service
     public class DisplayResults : IDisposable
     {
         private readonly ILogger Logger;
-        private readonly ILiteDbContext liteDbContext;
+        private readonly ICrud DbContext;
         private readonly IDisplayResult displayResult;
 
-        public DisplayResults(ILiteDbContext dbContext, IDisplayResult result)
+        public DisplayResults(ICrud dbContext, IDisplayResult result)
         {
-            liteDbContext = dbContext;
+            DbContext = dbContext;
             Logger = Log.ForContext<DisplayResults>();
             displayResult = result;
         }
@@ -41,16 +41,24 @@ namespace NetworkScanner.Service
                     cnt++;
                 }
 
-                #region Store to Db
+                #region Store-To-Db
 
                 foreach (var device in devices)
                 {
-                    var result = liteDbContext.Merge(device);
-                    Console.WriteLine(result);
-                    /* var found = liteDbContext.KeyExists(device);
-                    if (found) { liteDbContext.Update(device); }
-                    else { liteDbContext.Insert(device); } */
+                    try
+                    {
+                        var result = DbContext.Insert(device);
+                        //var result = DbContext.Merge(device);
+                        Console.WriteLine($"Database Result: {result}");
+                        /* var found = liteDbContext.KeyExists(device);
+                        if (found) { liteDbContext.Update(device); }
+                        else { liteDbContext.Insert(device); } */
+                    } catch(Exception ex)
+                    {
+                        //todo: reimplement key exits lookup.
+                    }
                 }
+
                 #endregion
 
                 //var x = devices.Select(x => x).OrderBy(y => y.IpAddress).ToList();

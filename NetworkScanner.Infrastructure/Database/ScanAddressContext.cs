@@ -1,13 +1,15 @@
-﻿using LiteDB;
+﻿/*
+using LiteDB;
 using NetworkScanner.Application.Common.Interface;
 using NetworkScanner.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NetworkScanner.Infrastructure.Database
 {
-    public class ScanAddressContext : ILiteDbContext
+    public class ScanAddressContext : ICrud
     {
         protected string Table { get; }
         public string DbName { get; }
@@ -82,5 +84,21 @@ namespace NetworkScanner.Infrastructure.Database
 
             return result.Count > 0;
         }
+
+        public int Delete<T>(T item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<T>> LoadAllAsync<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<T> FindById<T>(string id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
+*/

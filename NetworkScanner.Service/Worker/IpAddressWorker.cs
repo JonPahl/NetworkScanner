@@ -1,4 +1,5 @@
 ﻿using NetworkScanner.Domain.Entities;
+using NetworkScanner.Infrastructure.Database;
 using NetworkScanner.Infrastructure.HostName;
 using NetworkScanner.Infrastructure.IpFinder;
 using System;
@@ -29,7 +30,7 @@ namespace NetworkScanner.Service.Worker
 
         public IpAddressWorker()
         {
-            Finder = new FindIpAddresses();
+            Finder = new FindIpAddresses( new MongoDbContext() );
             stopWatch = new Stopwatch();
 
             IpAddresses = new List<string>();
@@ -56,8 +57,7 @@ namespace NetworkScanner.Service.Worker
             var tasks = new List<Task>();
             stopWatch.Start();
 
-            tasks.AddRange(from ip in IpAddresses
-                           select PingAndUpdateAsync(new Ping(), ip));
+            tasks.AddRange(from ip in IpAddresses select PingAndUpdateAsync(new Ping(), ip));
             await Task
                 .WhenAll(tasks)
                 .ContinueWith(_ =>
@@ -98,8 +98,7 @@ namespace NetworkScanner.Service.Worker
                     var foundDevice = Workflow.BuildObject<FoundDevice>(ip);
                     var DeviceName = Workflow.FindDeviceName(foundDevice);
                     foundDevice.DeviceName = DeviceName.Value ?? Utils.Common;
-                    ThreadPool.QueueUserWorkItem(
-                        new WaitCallback(FindDeviceId), foundDevice);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(FindDeviceId), foundDevice);
                     QueueLength++;
                 }
                 catch (Exception ex)
